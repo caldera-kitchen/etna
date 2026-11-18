@@ -1,0 +1,5 @@
+# "Sweat the onions" draws its heading and five marks on seven lines; "Simmer" draws three.
+findings:
+  - rule: chart-box-long
+    severity: warning
+    at: "Sweat the onions"

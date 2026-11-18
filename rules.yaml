@@ -1,0 +1,92 @@
+# Etna diagnostic rule catalog.
+# The stable ids that the linter and the test suite reference.
+# This is the machine-readable expansion of SPEC.md §9.
+#
+#   severity: error | warning | info
+#
+# error      -> rejects the file
+# warning    -> passes, informs
+# info       -> passes, a hint for review; never a problem and never counted as one
+version: 1
+rules:
+  # --- errors (strict on topology) ---
+  - id: missing-frontmatter-field
+    severity: error
+    description: The required frontmatter key (etna) is missing, or the frontmatter is malformed.
+  - id: unknown-form
+    severity: error
+    description: The frontmatter form key is neither "structured" nor "traditional".
+  - id: missing-title
+    severity: error
+    description: The body does not begin with a single H1 title.
+  - id: title-not-plain-text
+    severity: warning
+    description: The title H1 contains inline formatting; it should be plain text.
+  - id: no-steps
+    severity: error
+    description: The recipe contains no steps.
+  - id: step-missing-instruction
+    severity: error
+    description: A step has no instruction prose, with or without ingredients ("modern steps required").
+  - id: unresolved-reference
+    severity: error
+    description: An internal anchor or external recipe-path reference points at nothing, at a heading with no step to take an output from, or at the linking step itself or a component that holds it.
+  - id: ambiguous-reference
+    severity: error
+    description: An internal reference points at a heading whose text is not unique in the recipe.
+  - id: component-has-content
+    severity: error
+    description: A component (a heading with sub-headings) has ingredients or instructions of its own; they belong in a step.
+  - id: choose-too-few-branches
+    severity: error
+    description: A Choose callout marks a heading with fewer than two child headings to choose between.
+  - id: missing-sections
+    severity: error
+    description: A traditional recipe has neither an Ingredients nor a Directions section.
+  - id: notes-misplaced
+    severity: error
+    description: A Notes section that is not read as notes - a structured recipe's "## Notes" that is not its last H2 (it is read as a step), or a second Notes section in either form.
+
+  # --- warnings (loose on vocabulary) ---
+  - id: ingredient-unparsed
+    severity: warning
+    description: An ingredient line did not parse as "quantity unit item".
+  - id: missing-quantity
+    severity: warning
+    description: An ingredient has no quantity and no remark saying its use (a bare "salt"; "salt — to taste" is complete).
+  - id: include-as-text
+    severity: warning
+    description: An ingredient uses the unit "recipe" - a cross-recipe include written as text; consider a reference link.
+  - id: callout-near-miss
+    severity: error
+    description: A callout label looks like a mistake for a keyword (Checkpoint, Choose) - with case and everything but letters ignored and one trailing s dropped, it is at most one slip (a letter added, dropped or changed, or two neighbors swapped) per five letters of the keyword from it (choose, Chose, Hcoose, Checkpoints, Check point, Chekpiont). It is never read as the keyword, so the chart and the card would silently lose the choice or the checkpoint. Any other label is an aside and is not reported.
+  - id: no-ingredients
+    severity: warning
+    description: A traditional recipe has no ingredients.
+  - id: no-directions
+    severity: warning
+    description: A traditional recipe has no directions.
+  - id: unpaired-part
+    severity: info
+    description: A traditional recipe names its parts in both sections, and a part in one section has no part of the same name in the other but a near-miss there (Sauce and Sauces); the two do not pair. A direction phase with no ingredients of its own is normal, so this is only a hint for review.
+  - id: invalid-slug
+    severity: warning
+    description: A recipe directory name is not a valid slug (lowercase letters, digits and hyphens).
+  - id: missing-recipe-file
+    severity: error
+    description: A recipe directory contains no recipe.md.
+  - id: duplicate-heading
+    severity: warning
+    description: Two headings share the same text (and thus the same anchor), making internal references ambiguous.
+  - id: optional-near-miss
+    severity: warning
+    description: A heading's optional qualifier is written wrongly, so it is not read as designating its component or step optional - optional in parentheses or square brackets, or after a hyphen, an en dash, an unspaced dash or a comma (Glaze (optional), Glaze - optional), or a qualifier one slip from it (optinal, optoinal). The author's own words are not reported - a heading that begins Optionally, or a callout labeled Optional.
+  - id: quantity-on-group-reference
+    severity: warning
+    description: A reference link to a group (a component made only of sub-components) carries a quantity; the link stands for every sub-component, so link the one the amount applies to.
+  - id: chart-box-long
+    severity: warning
+    description: A structured step's chart box - its heading, then each mark in its instruction on a line of its own - runs to more than five lines, counted with the chart's own wrap at one character a cell. Five is the most any box has in the hand-drawn charts that Etna's charts follow. The box is drawn as marked; mark fewer words.
+  - id: stray-asterisk
+    severity: warning
+    description: A literal asterisk is left as text in a structured step's instruction - an unclosed mark (*medium-low) prints as an asterisk on the card and marks nothing. An escaped asterisk (\*) is an asterisk on purpose and is not reported.

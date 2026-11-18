@@ -1,0 +1,5 @@
+# The unit "recipe": another recipe included as text rather than by a reference link.
+findings:
+  - rule: include-as-text
+    severity: warning
+    at: "Simmer"

@@ -1,0 +1,6 @@
+# Both sections name their parts; "Part B" under Directions pairs with nothing, and "Parts B"
+# under Ingredients is a near miss. "Finish" has no ingredients of its own and is not reported.
+findings:
+  - rule: unpaired-part
+    severity: info
+    at: Part B

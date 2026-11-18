@@ -1,0 +1,5 @@
+# The `_none_` placeholder: the recipe has no directions.
+findings:
+  - rule: no-directions
+    severity: warning
+    at: "Directions"

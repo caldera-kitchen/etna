@@ -1,0 +1,12 @@
+# The ingredient-line rules apply to the traditional Ingredients section too. A reference
+# link is never an ingredient-line finding.
+findings:
+  - rule: include-as-text
+    severity: warning
+    at: "Ingredients"
+  - rule: missing-quantity
+    severity: warning
+    at: "Ingredients"
+  - rule: ingredient-unparsed
+    severity: warning
+    at: "Ingredients"

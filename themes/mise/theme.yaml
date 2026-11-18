@@ -1,0 +1,68 @@
+# Mise — a two-column kitchen sheet: what you need on the left, what you do on the right.
+# See README.md for the idea; every key is explained in ../README.md.
+
+etna-theme: 2
+kind: card
+name: Mise
+description: Two-column kitchen sheet. Ingredients in a side column, each beside the step that uses it.
+
+page:
+  size: letter
+  margin: 0.6in 0.65in 0.8in
+  papers:
+    letter: {}
+    a4: {}
+    half-letter: { margin: 0.45in 0.4in 0.6in, font-size: 9.5pt, fit: { min: 8.5pt, max: 10.5pt } }
+    index-5x7: { margin: 0.28in 0.3in 0.4in, font-size: 8.5pt, fit: { min: 7.5pt, max: 9.5pt } }
+    index-4x6: { margin: 0.22in 0.25in 0.35in, font-size: 8pt, fit: { min: 7pt, max: 9pt } }
+
+# Fitting may shrink the text down to min to save a nearly empty last page; it never grows it.
+# A reader may pick any size from min to max (--size, the Size control). See ../README.md#fit.
+fit:
+  min: 9pt
+  max: 11.5pt
+
+skeleton: card.html
+
+# Free fonts the renderer delivers (etna fonts; see ../README.md#web-fonts). Only the
+# weights and styles the stylesheet uses.
+webfonts:
+  - family: Figtree   # text and title: 300 (title) to 700, and italic 400
+    google: 'Figtree:ital,wght@0,300..700;1,400'
+
+options:
+  fonts:
+    # Free fonts always, delivered from webfonts:; the generic family is the last resort.
+    body: 'Figtree, sans-serif'
+    title: 'Figtree, sans-serif'
+    title-weight: 300       # the title's weight: card.css sets it from --card-font-title-weight
+  font-size: 10.5pt
+
+  # Structured recipes: each step carries its own ingredients (hoisted | paired).
+  layout: paired
+  parts: paired           # a traditional recipe's parts: each part's ingredients beside its steps
+
+  slots:
+    intro: true
+    notes: true           # a place for the notes; printed only when asked (--notes)
+    yield: true
+    source: true
+    version: false
+    license: false
+
+  display:
+    units: symbol         # g, tbsp — the side column is narrow
+    fractions: unicode
+    range: dash
+
+labels:
+  yield: Makes
+  source: From
+  choose: Choose one
+  option: Option
+  see: see
+  from: from
+  above: above
+  below: below
+  callouts:
+    Checkpoint: Checkpoint

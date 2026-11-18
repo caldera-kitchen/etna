@@ -1,0 +1,5 @@
+# There is no Directions section.
+findings:
+  - rule: no-directions
+    severity: warning
+    at: null

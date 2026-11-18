@@ -1,0 +1,19 @@
+# Labels that look like a mistake for a keyword, in case (`checkpoint`), spacing (`Check point`),
+# spelling (`Chose`, `Chekpoint`) or number (`Checkpoints`). Each is an error; none is read as
+# the keyword, so `Flavor` is not a choice. `Choice` (on Coffee) is another word, not a slip: an aside.
+findings:
+  - rule: callout-near-miss
+    severity: error
+    at: "Cook"
+  - rule: callout-near-miss
+    severity: error
+    at: "Cook"
+  - rule: callout-near-miss
+    severity: error
+    at: "Flavor"
+  - rule: callout-near-miss
+    severity: error
+    at: "Chill"
+  - rule: callout-near-miss
+    severity: error
+    at: "Chill"

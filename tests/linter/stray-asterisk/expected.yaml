@@ -1,0 +1,5 @@
+# The mark around "medium-low" is never closed, so its asterisk prints. The escaped one is meant.
+findings:
+  - rule: stray-asterisk
+    severity: warning
+    at: "Simmer"

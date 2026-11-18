@@ -1,0 +1,9 @@
+# Two Notes sections: the last is the recipe's notes; the first is read as a step and
+# reported (the repeated heading text is also a duplicate heading).
+findings:
+  - rule: notes-misplaced
+    severity: error
+    at: "Notes"
+  - rule: duplicate-heading
+    severity: warning
+    at: "Notes"

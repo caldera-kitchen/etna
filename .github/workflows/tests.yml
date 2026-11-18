@@ -1,0 +1,71 @@
+# Type-checks the Etna tools and runs their test suite: on every pull request, and on every
+# push except one to main. A push to main is tested by viewer.yml, which calls this workflow
+# and publishes the viewer only when it passes, so the suite runs once there, not twice.
+#
+# Two steps below, marked "Runner", fit the GitHub runner to what the tests need.
+#
+# What the suite needs, and how this job gives it:
+# - Node 24, the version tools/package.json states (engines: >=24).
+# - No network beyond the installs (npm ci, apt-get): the fonts are committed (themes/.fonts/), and no test fetches.
+# - A Chrome-family browser for the card paging tests. ubuntu-24.04 runners come with Google
+#   Chrome at /usr/bin/google-chrome, where the tests look (src/card/pdf.ts). Without one those
+#   tests are skipped, not failed, so the job checks that it is there.
+# - pdftotext (poppler-utils) for one group of paging tests; installed below.
+# - The author's private recipe-collection/ folder for about twenty corpus tests: not in
+#   this repository, so they are skipped here, as in any clone.
+
+name: Tests
+
+on:
+  push:
+    # main is tested by viewer.yml (it calls this workflow). A branches filter alone would stop
+    # tag pushes too, so tags are named to keep them tested.
+    branches-ignore: [main]
+    tags: ['**']
+  pull_request:
+  workflow_call:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    name: Type check and tests
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+          cache-dependency-path: tools/package-lock.json
+
+      - name: Install the Etna tools
+        run: npm ci
+        working-directory: tools
+
+      - name: Install pdftotext
+        run: sudo apt-get update && sudo apt-get install --yes poppler-utils
+
+      # Runner: Ubuntu 24.04 stops unprivileged programs from making the user namespaces that
+      # Chrome's sandbox is built on, and Chrome then refuses to start ("No usable sandbox").
+      # This lifts that restriction on the throwaway runner, so Chrome runs with its sandbox
+      # on; the tests never pass --no-sandbox.
+      - name: Let Chrome's sandbox start
+        run: sudo sysctl -w kernel.apparmor_restrict_unprivileged_userns=0
+
+      # Runner: the paging tests skip quietly without a browser; fail loudly instead.
+      - name: Check the browser the paging tests use
+        run: |
+          test -x /usr/bin/google-chrome
+          /usr/bin/google-chrome --version
+
+      - name: Type check
+        run: npx tsc --noEmit
+        working-directory: tools
+
+      - name: Tests
+        run: npx vitest run
+        working-directory: tools

@@ -1,0 +1,6 @@
+# A slug is lowercase letters, digits and hyphens; `Test-Cookies` has capitals.
+findings:
+  - rule: invalid-slug
+    severity: warning
+    at: null
+    recipe: Test-Cookies

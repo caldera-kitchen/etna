@@ -1,0 +1,6 @@
+# `form` is neither structured nor traditional. The form-specific rules are not run until the
+# form is known, so this is the only finding.
+findings:
+  - rule: unknown-form
+    severity: error
+    at: null

@@ -1,0 +1,239 @@
+# Etna units registry.
+#
+# In an ingredient line `<quantity> <unit> <item>` the unit is whatever follows the quantity
+# and matches this registry, longest match first (SPEC §6). A unit is not only a weight or a
+# volume: `2 large eggs` has the unit `large`.
+#
+# Fields
+#   name     canonical singular name
+#   symbol   canonical written form, when the unit has one (never pluralized)
+#   plural   plural of the name, for units written as words; omit when invariant
+#   aliases  other spellings accepted on input (matching ignores case)
+#   kind     mass | volume | length | size | piece | container | approximate | recipe
+#   system   metric | us   (mass, volume and length only)
+#   grams    what one of a mass unit weighs, in grams
+#   ml       what one of a volume unit holds, in milliliters. US volume units follow the
+#            kitchen convention (tsp 5 ml, tbsp 15 ml, cup 240 ml) - see densities.md.
+#
+# Canonical spelling: the symbol when there is one, otherwise the name agreeing in number
+# with the quantity (`1 clove`, `2 cloves`). Only mass, volume and length convert or scale by
+# arithmetic.
+#
+# The registry grows bottom-up: the linter's "unit candidates" report lists the most common
+# first words of unit-less items, which is where missing units show up.
+version: 2
+units:
+  # --- mass ---
+  - name: gram
+    symbol: g
+    aliases: [grams, gr]
+    kind: mass
+    grams: 1
+    system: metric
+  - name: kilogram
+    symbol: kg
+    aliases: [kilograms, kilo, kilos]
+    kind: mass
+    grams: 1000
+    system: metric
+  - name: milligram
+    symbol: mg
+    aliases: [milligrams]
+    kind: mass
+    grams: 0.001
+    system: metric
+  - name: ounce
+    symbol: oz
+    aliases: [ounces, oz.]
+    kind: mass
+    grams: 28.349523125
+    system: us
+    note: "Ambiguous with fluid ounce; read as mass."
+  - name: pound
+    symbol: lb
+    aliases: [pounds, lbs, lb., lbs.]
+    kind: mass
+    grams: 453.59237
+    system: us
+
+  # --- volume ---
+  - name: milliliter
+    symbol: ml
+    aliases: [milliliters, millilitre, millilitres, mL]
+    kind: volume
+    ml: 1
+    system: metric
+  - name: liter
+    symbol: l
+    aliases: [liters, litre, litres, L]
+    kind: volume
+    ml: 1000
+    system: metric
+  - name: teaspoon
+    symbol: tsp
+    aliases: [teaspoons, tsp., tsps]
+    kind: volume
+    ml: 5
+    system: us
+  - name: tablespoon
+    symbol: tbsp
+    aliases: [tablespoons, tbs, tbsp., tbs., Tbsp, Tbsp.]
+    kind: volume
+    ml: 15
+    system: us
+  - name: fluid ounce
+    symbol: fl oz
+    aliases: [fluid ounces, fl. oz., fl oz.]
+    kind: volume
+    ml: 30
+    system: us
+  - name: cup
+    plural: cups
+    kind: volume
+    ml: 240
+    system: us
+  - name: pint
+    plural: pints
+    kind: volume
+    ml: 480
+    system: us
+  - name: quart
+    plural: quarts
+    kind: volume
+    ml: 960
+    system: us
+  - name: gallon
+    plural: gallons
+    kind: volume
+    ml: 3840
+    system: us
+
+  # --- length ---
+  - name: inch
+    plural: inches
+    kind: length
+    system: us
+
+  # --- size: describes the item, invariant ---
+  - name: extra-large
+    kind: size
+  - name: large
+    kind: size
+  - name: medium
+    kind: size
+  - name: small
+    kind: size
+  - name: mini
+    kind: size
+
+  # --- piece: a natural part or count of the item ---
+  - name: clove
+    plural: cloves
+    kind: piece
+  - name: slice
+    plural: slices
+    kind: piece
+  - name: thick slice
+    plural: thick slices
+    kind: piece
+  - name: piece
+    plural: pieces
+    kind: piece
+  - name: stalk
+    plural: stalks
+    kind: piece
+  - name: sprig
+    plural: sprigs
+    kind: piece
+  - name: leaf
+    plural: leaves
+    kind: piece
+  - name: ear
+    plural: ears
+    kind: piece
+  - name: rib
+    plural: ribs
+    kind: piece
+  - name: thread
+    plural: threads
+    kind: piece
+  - name: head
+    plural: heads
+    kind: piece
+  - name: bunch
+    plural: bunches
+    kind: piece
+  - name: loaf
+    plural: loaves
+    kind: piece
+  - name: sheet
+    plural: sheets
+    kind: piece
+  - name: block
+    plural: blocks
+    kind: piece
+
+  # --- container: how the item is packaged ---
+  - name: can
+    plural: cans
+    kind: container
+  - name: stick
+    plural: sticks
+    kind: container
+  - name: box
+    plural: boxes
+    kind: container
+  - name: packet
+    plural: packets
+    kind: container
+  - name: package
+    plural: packages
+    kind: container
+  - name: bag
+    plural: bags
+    kind: container
+  - name: small bag
+    plural: small bags
+    kind: container
+  - name: tea bag
+    plural: tea bags
+    kind: container
+
+  # --- approximate: an amount judged by hand ---
+  - name: pinch
+    plural: pinches
+    kind: approximate
+  - name: dash
+    plural: dashes
+    kind: approximate
+  - name: splash
+    plural: splashes
+    kind: approximate
+  - name: drop
+    plural: drops
+    kind: approximate
+  - name: turn
+    plural: turns
+    kind: approximate
+  - name: grind
+    plural: grinds
+    kind: approximate
+  - name: crank
+    plural: cranks
+    kind: approximate
+  - name: spritz
+    plural: spritzes
+    aliases: [spritzs]
+    kind: approximate
+  - name: dusting
+    plural: dustings
+    kind: approximate
+  - name: heaped tablespoon
+    plural: heaped tablespoons
+    kind: approximate
+
+  # --- recipe: another recipe used as an ingredient, written as text ---
+  # Prefer a reference link (SPEC §6); the linter flags this unit (include-as-text).
+  - name: recipe
+    plural: recipes
+    kind: recipe

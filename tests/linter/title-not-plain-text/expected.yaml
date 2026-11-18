@@ -1,0 +1,5 @@
+# The H1 contains emphasis.
+findings:
+  - rule: title-not-plain-text
+    severity: warning
+    at: null

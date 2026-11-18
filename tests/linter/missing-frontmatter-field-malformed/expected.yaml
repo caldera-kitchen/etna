@@ -1,0 +1,5 @@
+# The frontmatter is not valid YAML (an unclosed flow sequence).
+findings:
+  - rule: missing-frontmatter-field
+    severity: error
+    at: null

@@ -1,0 +1,5 @@
+# The H1 exists, but the body does not open with it.
+findings:
+  - rule: missing-title
+    severity: error
+    at: null

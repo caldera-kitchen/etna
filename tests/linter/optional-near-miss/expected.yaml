@@ -1,0 +1,10 @@
+# Only `— optional` after a spaced em dash designates a component or step. Optional in
+# parentheses and a misspelled qualifier are each a warning. The author's own words are left alone:
+# a heading that opens with Optionally, and an `Optional` callout (an aside), are not reported.
+findings:
+  - rule: optional-near-miss
+    severity: warning
+    at: "Glaze (optional)"
+  - rule: optional-near-miss
+    severity: warning
+    at: "Seeds — optinal"

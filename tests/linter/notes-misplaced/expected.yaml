@@ -1,0 +1,5 @@
+# "## Notes" is followed by a step, so it is not the last H2: it is read as a step and reported.
+findings:
+  - rule: notes-misplaced
+    severity: error
+    at: "Notes"

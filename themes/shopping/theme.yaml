@@ -1,0 +1,59 @@
+# Shopping list — what you need to have, to check off with a pen in the store.
+# See README.md for the idea; every key is explained in ../README.md.
+
+etna-theme: 2
+kind: card
+name: Shopping list
+description: A shopping list for one recipe. Every ingredient once, amounts totaled, a box to check off.
+
+page:
+  size: letter
+  margin: 0.6in 0.75in 0.75in
+  papers:
+    letter: {}
+    a4: {}
+    half-letter: { margin: 0.45in 0.45in 0.6in, font-size: 12pt, fit: { min: 10pt, max: 13pt } }
+    index-5x7: { margin: 0.28in 0.35in 0.4in, font-size: 10pt, fit: { min: 8pt, max: 11pt } }
+    index-4x6: { margin: 0.22in 0.3in 0.35in, font-size: 9pt, fit: { min: 7.5pt, max: 10pt } }
+
+# A list is read on the move: never much smaller than its size.
+fit:
+  min: 12pt
+  max: 16pt
+
+skeleton: card.html
+
+# Free fonts the renderer delivers (etna fonts; see ../README.md#web-fonts). The same as Mise.
+webfonts:
+  - family: Figtree   # text and title: 300 (title) to 700, and italic 400
+    google: 'Figtree:ital,wght@0,300..700;1,400'
+
+options:
+  fonts:
+    # Free fonts always, delivered from webfonts:; the generic family is the last resort.
+    body: 'Figtree, sans-serif'
+    title: 'Figtree, sans-serif'
+    title-weight: 300       # the title's weight: card.css sets it from --card-font-title-weight
+  font-size: 14pt         # read while walking a store
+
+  # One consolidated ingredient list, amounts totaled; no directions.
+  layout: list
+
+  slots:
+    intro: false
+    notes: false          # no place for a recipe's notes, even when asked
+    yield: true
+    source: false
+    version: false
+    license: false
+    uses: false           # true: under each item, the steps that use it
+
+  display:
+    units: symbol         # g, tbsp
+    fractions: unicode
+    range: dash
+
+labels:
+  shopping-list: Shopping list
+  other-recipes: Other recipes
+  yield: Makes

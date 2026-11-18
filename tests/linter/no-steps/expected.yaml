@@ -1,0 +1,5 @@
+# A structured recipe with no headings below the title has no steps.
+findings:
+  - rule: no-steps
+    severity: error
+    at: null

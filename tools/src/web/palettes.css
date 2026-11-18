@@ -1,0 +1,40 @@
+/* Etna's palettes, light or dark, and corners: the choices in Settings >
+   Appearance. Keyed on attributes of <html> (appearance.ts rootAttributes; set before the first
+   paint by boot.ts). Appended to app.css by build.ts, so these rules follow app.css's own.
+   "Plain" is app.css's own colors and "Soft" its own corners: with those, nothing changes.
+   Every pair of a palette's values was checked against WCAG AA contrast. */
+[data-palette="plain"][data-scheme="light"] { --ground: #fbfaf7; --paper: #ffffff; --hairline: #dedad2; --rule: #8f897d; --ink: #1d1c1a; --ink-soft: #6b675f; --accent: #1f5f8b; --on-accent: #ffffff; --accent-soft: #e4eef5; --desk: #e9e7e1; --focus: #1f5f8b; --mark: #ffe27a; --error: #a32020; --warning: #8a5a00; --ok: #2a6b45; }
+[data-palette="plain"][data-scheme="dark"] { --ground: #181817; --paper: #222220; --hairline: #3a3935; --rule: #86827a; --ink: #ecebe7; --ink-soft: #a09c93; --accent: #7db7dd; --on-accent: #181817; --accent-soft: #24343f; --desk: #2c2b28; --focus: #7db7dd; --mark: #6b5a12; --error: #ff8f85; --warning: #e6b450; --ok: #7fcf9b; }
+[data-palette="slate"][data-scheme="light"] { --ground: #f5f7f9; --paper: #ffffff; --hairline: #d9dfe5; --rule: #7b8692; --ink: #1a2129; --ink-soft: #55606c; --accent: #2c5c9a; --on-accent: #ffffff; --accent-soft: #e3ebf6; --desk: #e2e7ed; --focus: #2c5c9a; --mark: #ffe27a; --error: #a42424; --warning: #805500; --ok: #22693f; }
+[data-palette="slate"][data-scheme="dark"] { --ground: #12171c; --paper: #1a2128; --hairline: #2d3741; --rule: #76828e; --ink: #e6ebf0; --ink-soft: #9ca8b4; --accent: #8cb8f0; --on-accent: #12171c; --accent-soft: #213246; --desk: #222a33; --focus: #8cb8f0; --mark: #5c5214; --error: #ff8f85; --warning: #e6b450; --ok: #7fcf9b; }
+[data-palette="linen"][data-scheme="light"] { --ground: #f6f1e7; --paper: #fcf9f2; --hairline: #e3d9c6; --rule: #8c806d; --ink: #2a241c; --ink-soft: #675c4c; --accent: #187d61; --on-accent: #fcf9f2; --accent-soft: #dcece1; --desk: #e7ddcb; --focus: #187d61; --mark: #ffe263; --error: #bd5102; --warning: #916d02; --ok: #4c7f18; }
+[data-palette="linen"][data-scheme="dark"] { --ground: #1d1a15; --paper: #26221c; --hairline: #3d362c; --rule: #8c816f; --ink: #efe7d8; --ink-soft: #b3a891; --accent: #66c2a5; --on-accent: #1d1a15; --accent-soft: #323f35; --desk: #2f2a23; --focus: #66c2a5; --mark: #674d01; --error: #fc8d62; --warning: #ffd92f; --ok: #a6d854; }
+[data-palette="pistachio"][data-scheme="light"] { --ground: #f2f6e8; --paper: #fbfdf6; --hairline: #d9e1c6; --rule: #7f886a; --ink: #21261a; --ink-soft: #58614b; --accent: #6d68a6; --on-accent: #fbfdf6; --accent-soft: #e8e9ed; --desk: #e0e8cf; --focus: #6d68a6; --mark: #ffe263; --error: #c15302; --warning: #946f02; --ok: #188365; }
+[data-palette="pistachio"][data-scheme="dark"] { --ground: #151912; --paper: #1d2219; --hairline: #323a2b; --rule: #7f8a72; --ink: #e9eedf; --ink-soft: #a7b199; --accent: #8da0cb; --on-accent: #151912; --accent-soft: #313939; --desk: #262c20; --focus: #8da0cb; --mark: #674d01; --error: #fc8d62; --warning: #ffd92f; --ok: #66c2a5; }
+[data-palette="catppuccin"][data-scheme="light"] { --ground: #e6e9ef; --paper: #eff1f5; --hairline: #ccd0da; --rule: #808395; --ink: #4c4f69; --ink-soft: #5c5f77; --accent: #8538ea; --on-accent: #eff1f5; --accent-soft: #e3dbf4; --desk: #dce0e8; --focus: #8538ea; --mark: #e9c99f; --error: #d20f39; --warning: #bc480b; --ok: #347c1f; }
+[data-palette="catppuccin"][data-scheme="dark"] { --ground: #181825; --paper: #1e1e2e; --hairline: #313244; --rule: #6c7086; --ink: #cdd6f4; --ink-soft: #a6adc8; --accent: #cba6f7; --on-accent: #11111b; --accent-soft: #3d3652; --desk: #313244; --focus: #cba6f7; --mark: #605955; --error: #f38ba8; --warning: #fab387; --ok: #a6e3a1; }
+[data-palette="nord"][data-scheme="light"] { --ground: #e5e9f0; --paper: #eceff4; --hairline: #c9cfd8; --rule: #7d8492; --ink: #2e3440; --ink-soft: #4c566a; --accent: #4a6b8e; --on-accent: #eceff4; --accent-soft: #cee1e9; --desk: #d8dee9; --focus: #4a6b8e; --mark: #ebd9b5; --error: #a6535c; --warning: #915f4c; --ok: #627152; }
+[data-palette="nord"][data-scheme="dark"] { --ground: #2e3440; --paper: #3b4252; --hairline: #434c5e; --rule: #888d9a; --ink: #eceff4; --ink-soft: #d8dee9; --accent: #88c0d0; --on-accent: #2e3440; --accent-soft: #475872; --desk: #434c5e; --focus: #88c0d0; --mark: #746a58; --error: #d9a0a6; --warning: #ebcb8b; --ok: #a3be8c; }
+[data-palette="solarized"][data-scheme="light"] { --ground: #eee8d5; --paper: #fdf6e3; --hairline: #cecfc3; --rule: #798686; --ink: #073642; --ink-soft: #546a71; --accent: #196ca2; --on-accent: #fdf6e3; --accent-soft: #dfe7e1; --desk: #dcdacb; --focus: #196ca2; --mark: #e4d094; --error: #d4302d; --warning: #8f6c00; --ok: #6a7700; }
+[data-palette="solarized"][data-scheme="dark"] { --ground: #002b36; --paper: #073642; --hairline: #234a54; --rule: #6a8086; --ink: #97a5a5; --ink-soft: #91a2a4; --accent: #4e9fdc; --on-accent: #002b36; --accent-soft: #063a4f; --desk: #133e4a; --focus: #4e9fdc; --mark: #363818; --error: #e67977; --warning: #ba9319; --ok: #8fa319; }
+
+/* The diff colors and the small shadow are the same in every palette: they follow light or dark as chosen,
+   also when the choice differs from the device's. */
+[data-scheme="light"] { --add: #dff3e1; --add-strong: #9fdba6; --del: #fbe3e1; --del-strong: #f2aaa3; --shadow-1: 0 1px 2px rgba(29, 28, 26, 0.10); }
+[data-scheme="dark"] { --add: #1f3a25; --add-strong: #2f6b3b; --del: #45211f; --del-strong: #7d3530; --shadow-1: 0 1px 2px rgba(0, 0, 0, 0.4); }
+
+/* Corners: one setting mapped onto the radius tokens. */
+[data-radius="square"] { --radius-s: 0px; --radius: 0px; --radius-l: 0px; --radius-pill: 0px; }
+[data-radius="soft"] { --radius-s: 4px; --radius: 6px; --radius-l: 9px; --radius-pill: 999px; }
+[data-radius="round"] { --radius-s: 8px; --radius: 12px; --radius-l: 18px; --radius-pill: 999px; }
+/* Square: the selected row's bar a little bolder. Round: the rows inset and rounded. */
+[data-radius="square"] .item.active { box-shadow: inset 4px 0 0 var(--accent); }
+[data-radius="square"] .item.active:focus-visible { box-shadow: inset 4px 0 0 var(--accent), inset 0 0 0 2px var(--focus); }
+[data-radius="round"] .item { width: calc(100% - 16px); margin: 3px 8px; border-bottom: 0; border-radius: var(--radius); }
+[data-radius="round"] .views button { border-radius: var(--radius-l); }
+[data-radius="round"] .card-frame { border-top: 0; }
+
+/* The mark, Contour, beside the wordmark (app.css .top h1): Etna's identity, not a choice. */
+.brand { display: inline-flex; align-items: center; gap: 8px; min-height: var(--target); color: inherit; text-decoration: none; border-radius: var(--radius-s); }
+.brand:hover span { text-decoration: underline; text-decoration-thickness: 1px; text-underline-offset: 3px; }
+.brand-mark { display: block; flex: none; color: var(--accent); }

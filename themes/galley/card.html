@@ -1,0 +1,25 @@
+<article class="card card-{{theme}}">
+  <header class="card-header">
+    <h1 class="card-title">{{title}}</h1>
+    {{#meta}}
+    <p class="card-meta">{{meta}}</p>
+    {{/meta}}
+  </header>
+  <div class="card-columns">
+    {{#intro}}
+    <div class="intro">{{intro}}</div>
+    {{/intro}}
+    {{#ingredients}}
+    <div class="ingredients">{{ingredients}}</div>
+    {{/ingredients}}
+    {{#directions}}
+    <div class="directions">{{directions}}</div>
+    {{/directions}}
+    {{#components}}
+    <div class="components">{{components}}</div>
+    {{/components}}
+    {{#notes}}
+    <footer class="notes">{{notes}}</footer>
+    {{/notes}}
+  </div>
+</article>

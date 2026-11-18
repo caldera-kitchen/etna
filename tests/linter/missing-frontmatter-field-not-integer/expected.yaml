@@ -1,0 +1,5 @@
+# `etna` must be an integer format version.
+findings:
+  - rule: missing-frontmatter-field
+    severity: error
+    at: null

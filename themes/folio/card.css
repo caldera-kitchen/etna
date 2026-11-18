@@ -1,0 +1,218 @@
+/* Folio — a classic serif cookbook page.
+ *
+ * Display matter on the center axis (title, component names); text flush left on a
+ * moderate measure; old-style figures in prose where the font has them (Google's Spectral does
+ * not), lining figures in the ingredient table.
+ * In a structured recipe each step names itself in small capitals, lists what goes in, then says
+ * what to do — the "action" layout of the old kitchen bibles.
+ *
+ * The renderer's core stylesheet comes first; see ../README.md for what it does and for the
+ * classes and custom properties.
+ */
+
+:root {
+  --folio-indent: 1.6em;
+  --folio-hair: 0.5pt solid var(--card-ink);
+  --card-paragraph-gap: 0.45em; /* between paragraphs of one step */
+  /* Small capitals are a font of their own: Spectral SC draws its lower case as small capitals,
+     so a label set lower case in it is all small capitals. Google's Spectral has no small-cap
+     feature, so font-variant-caps would only shrink capitals. */
+  --folio-small-caps: "Spectral SC", var(--card-font-body);
+}
+
+/* ------------------------------------------------------------------ the page */
+
+.card {
+  line-height: 1.38;
+  font-variant-numeric: oldstyle-nums proportional-nums;
+  font-kerning: normal;
+  text-wrap: pretty;
+}
+
+/* ----------------------------------------------------------------- the title */
+
+.card-header { text-align: center; padding: 0 0 1.091rem; }
+
+.card-title {
+  font-family: var(--card-font-title);
+  font-weight: var(--card-font-title-weight);
+  font-size: 2.35em;
+  line-height: 1.12;
+  margin: 0;
+  text-wrap: balance;
+  font-variant-numeric: lining-nums;
+}
+
+.card-meta { margin: 0.636rem 0 0; font-style: italic; font-size: 0.95em; }
+.meta-item + .meta-item::before { content: "·"; font-style: normal; margin: 0 0.55em; }
+.meta-label { }
+
+/* A short centered rule closes the display matter. */
+.card-header::after {
+  content: "";
+  display: block;
+  width: 5.891rem;
+  margin: 0.909rem auto 0;
+  border-top: var(--folio-hair);
+}
+
+.intro { padding: 0 0 1.091rem; font-style: italic; }
+
+/* --------------------------------------------------------------- ingredients */
+
+.card > .ingredients { padding: 0.182rem 0 1.182rem var(--folio-indent); break-after: avoid; }
+
+.ingr-table th,
+.ingr-table td {
+  padding: 0 0 0.091rem;
+  line-height: 1.32;
+}
+
+.ingr-table .ingr-group-label {
+  font-family: var(--folio-small-caps); text-transform: lowercase;
+  letter-spacing: 0.08em;
+  padding-top: 0.818rem;
+  padding-bottom: 0.182rem;
+}
+.ingr-group:first-child .ingr-group-label { padding-top: 0; }
+
+/* The renderer's widths (the widest quantity and unit on the card) keep every table in line. */
+.ingr-table .ingr-qty {
+  width: max(2.6em, var(--ingr-qty-width, 0px)); min-width: max(2.6em, var(--ingr-qty-width, 0px));
+  padding-right: 0.45em;
+  font-variant-numeric: lining-nums tabular-nums;
+}
+/* Italic units set narrower than the estimate assumes. */
+.ingr-table .ingr-unit { width: calc(var(--ingr-unit-width, 0px) * 0.9); min-width: calc(var(--ingr-unit-width, 0px) * 0.9); padding-right: 0.9em; font-style: italic; }
+.ingr-note { font-style: italic; }
+
+/* ---------------------------------------------------------------- directions */
+
+.direction { position: relative; }
+.direction + .direction,
+.direction-extra + .direction,
+.direction + .direction-extra { margin-top: 0.55em; }
+
+/* Hanging figures in the margin, on every step of a run (a step name follows its figure). */
+.direction-number {
+  position: absolute;
+  left: calc(-1 * var(--folio-indent));
+  width: calc(var(--folio-indent) - 0.55em);
+  text-align: right;
+  font-style: italic;
+}
+
+.card > .directions { padding-left: var(--folio-indent); }
+.direction-label { font-family: var(--folio-small-caps); text-transform: lowercase; letter-spacing: 0.07em; }
+.direction-label::after { content: "."; }
+
+.callout {
+  margin: 0.364rem 0 0 var(--folio-indent);
+  font-size: 0.93em;
+  line-height: 1.36;
+}
+.callout-label { font-family: var(--folio-small-caps); text-transform: lowercase; letter-spacing: 0.07em; }
+.callout-label::after { content: "."; }
+
+.md-quote { font-style: italic; }
+.md-code { font-size: 0.88em; }
+.md-rule { border: 0; border-top: var(--folio-hair); width: 5.891rem; margin: 0.909rem auto; }
+
+/* --------------------------------------------------------------------- parts */
+
+/* A traditional recipe's parts: each name in small capitals, as in the ingredient list, over
+   its steps. */
+.part + .part { margin-top: 0.818rem; }
+.part-title {
+  font-size: 1em; font-weight: 400; line-height: inherit; margin: 0 0 0.182rem;
+  font-family: var(--folio-small-caps); text-transform: lowercase; letter-spacing: 0.08em;
+}
+/* A part heading's qualifier after an em dash (`### Biga — 50% hydration`): in the body face, lighter and smaller than the name. */
+.part-qualifier { font-family: var(--card-font-body); text-transform: none; letter-spacing: normal; font-style: italic; font-size: 0.9em; }
+
+/* options.parts: paired — each part a section of the page, as a component is: its name
+   centered in italic, what goes in, then what to do. */
+.part-paired + .part-paired { margin-top: 1.818rem; }
+.part-paired > .part-title {
+  margin-left: calc(-1 * var(--folio-indent));
+  text-align: center;
+  font-style: italic;
+  font-family: var(--card-font-body);
+  text-transform: none;
+  letter-spacing: normal;
+  font-size: 1.45em;
+  line-height: 1.15;
+  margin-bottom: 0.818rem;
+  font-variant-numeric: lining-nums;
+}
+.part-ingredients { padding-bottom: 0.818rem; }
+
+/* ---------------------------------------------------------------- components */
+
+.component { margin-top: 1.818rem; }
+.components > .component:first-child { margin-top: 0.182rem; }
+
+.component-title {
+  text-align: center;
+  font-style: italic;
+  font-weight: 400;
+  font-size: 1.45em;
+  line-height: 1.15;
+  margin: 0 0 0.818rem;
+  font-variant-numeric: lining-nums;
+}
+
+/* A component inside a component: the same italic, at text size. */
+.component .component { margin-top: 1.182rem; }
+.component > .component-title + .component { margin-top: 0; }
+.component .component > .component-title {
+  font-size: 1.12em;
+  margin-bottom: 0.364rem;
+}
+/* Top-level steps after the components (the closing steps): set apart by the short centered
+   rule folio uses for a break, so they do not read as the last component's. */
+.component + .steps { margin-top: 1.091rem; }
+/* The rule sits in the gap the run already had, so the card is no taller. */
+.component + .steps::before { content: ""; display: block; width: 5.891rem; margin: -0.546rem auto 0.546rem; border-top: var(--folio-hair); }
+
+/* One step: its name in small capitals, what goes in (indented), what to do. */
+.step + .step { margin-top: 0.6em; }
+.step-title {
+  font-size: 1em; font-weight: 400; line-height: inherit; margin: 0;
+  font-family: var(--folio-small-caps); text-transform: lowercase; letter-spacing: 0.07em;
+}
+.step-title::after { content: "."; }
+.step-ingredients { padding: 0.091rem 0 0.273rem var(--folio-indent); }
+
+/* Nothing to list: the name runs in to the instruction. */
+.step:not(.step-with-ingredients) > .step-head { float: left; margin-right: 0.4em; }
+/* "Chill" / "Chill." — the name already says it (the core hides .step-echo's body). */
+.step-echo > .step-head { float: none; }
+.step::after { content: ""; display: block; clear: both; }
+
+/* Choose: pick one branch. */
+.choose-label { margin: 0 0 0.364rem; text-align: center; font-style: italic; }
+.choose-text { }
+.choose-branch { margin: 0.727rem 0 0; }
+.branch-label { font-size: 1em; font-weight: 400; margin: 0 0 0.091rem; }
+.branch-marker { font-family: var(--folio-small-caps); text-transform: lowercase; letter-spacing: 0.08em; margin-right: 0.35em; }
+.branch-marker::after { content: "."; }
+
+.extra-section { margin-top: 1.273rem; }
+.section-title { font-size: 1em; font-weight: 400; font-family: var(--folio-small-caps); text-transform: lowercase; letter-spacing: 0.1em; margin: 0 0 0.273rem; }
+
+/* --------------------------------------------------------------------- notes */
+
+.notes { margin-top: 1.818rem; font-size: 0.93em; line-height: 1.38; }
+.notes-title {
+  text-align: center;
+  font-size: 1em;
+  font-weight: 400;
+  font-family: var(--folio-small-caps); text-transform: lowercase;
+  letter-spacing: 0.12em;
+  margin: 0 0 0.455rem;
+  break-after: avoid;
+}
+.note + .note { margin-top: 0.45em; }
+.note-label { font-family: var(--folio-small-caps); text-transform: lowercase; letter-spacing: 0.07em; }
+.note-label::after { content: "."; }

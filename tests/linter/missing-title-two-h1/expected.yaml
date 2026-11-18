@@ -1,0 +1,5 @@
+# A second H1. It is reported where it stands, inside the step it interrupts.
+findings:
+  - rule: missing-title
+    severity: error
+    at: "Make the crust"

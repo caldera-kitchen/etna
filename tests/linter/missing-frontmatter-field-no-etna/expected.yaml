@@ -1,0 +1,5 @@
+# Frontmatter is present but has no `etna` key.
+findings:
+  - rule: missing-frontmatter-field
+    severity: error
+    at: null

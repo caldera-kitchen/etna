@@ -1,0 +1,214 @@
+/* Grid — a Swiss sheet.
+ *
+ * One heavy rule at the head of every page, one vertical axis. Names live in the label
+ * column to the left of the axis (Ingredients, Method, a step's name); everything you read
+ * or measure hangs from the axis. Hairlines separate sections, never steps.
+ *
+ * The renderer's core stylesheet comes first; see ../README.md for what it does and for the
+ * classes and custom properties.
+ */
+
+:root {
+  --grid-label: 8.914rem;       /* width of the label column */
+  --grid-gap: 1.371rem;          /* gutter between label column and axis */
+  --grid-heavy: 2.5pt solid var(--card-ink);
+  --grid-hair: 0.5pt solid var(--card-ink);
+  --card-paragraph-gap: 0.45em; /* between paragraphs of one step */
+}
+
+/* ------------------------------------------------------------------ the page */
+
+/* The heavy rule heads every page box; the @page rule does the same for a card printed without
+   the paging script (Chrome only). */
+.sheet-box { border-top: 2.5pt solid var(--card-ink); padding-top: 0.12in; }
+@page {
+  border-top: 2.5pt solid var(--card-ink);
+  padding-top: 0.12in;
+}
+
+.card {
+  line-height: 1.37;
+  font-variant-numeric: lining-nums;
+}
+/* Tabular figures only where numbers stand in columns: Inter, the free stand-in, also
+   spaces its hyphens out when tabular figures are on. */
+.ingr-table .ingr-qty,
+.direction-number { font-variant-numeric: lining-nums tabular-nums; }
+
+/* Without the paging script, on screen the sheet draws the rule the page box draws in print. */
+@media screen {
+  .card-flow .card-header { border-top: var(--grid-heavy); padding-top: 0.12in; }
+}
+
+/* ------------------------------------------------------- rows: label | content */
+
+.card-row,
+.step {
+  display: grid;
+  grid-template-columns: var(--grid-label) minmax(0, 1fr);
+  column-gap: var(--grid-gap);
+  align-items: start;
+}
+.card-row > * { min-width: 0; }
+.card-row + .card-row,
+.card-row + .components,
+.components + .card-row { border-top: var(--grid-hair); }
+.card-row { padding: 0.667rem 0 1.048rem; }
+
+/* A label: small, bold, on the first baseline of what it names. */
+.card-label {
+  margin: 0;
+  font-size: 0.8em;
+  font-weight: bold;
+  line-height: calc(1.37 / 0.8);
+}
+
+/* ----------------------------------------------------------------- the title */
+
+.card-header { padding: 0 0 1.714rem; }
+
+.card-title {
+  font-family: var(--card-font-title);
+  font-weight: var(--card-font-title-weight);
+  font-size: 2.6em;
+  line-height: 1.04;
+  letter-spacing: -0.018em;
+  margin: -0.06em 0 0;
+  text-wrap: balance;
+}
+
+/* Yield, source, version: stacked in the label column beside the title. */
+.card-meta { margin: 0; font-size: 1em; font-weight: normal; line-height: 1.35; padding-top: 0.19rem; }
+.meta-item { display: block; }
+.meta-item + .meta-item { margin-top: 0.381rem; }
+.meta-label { display: block; font-weight: bold; }
+
+/* --------------------------------------------------------------- ingredients */
+
+.ingr-table th,
+.ingr-table td {
+  padding: 0 0 0.19rem;
+  line-height: 1.32;
+}
+
+.ingr-table .ingr-group-label { font-weight: bold; padding-top: 0.762rem; padding-bottom: 0.286rem; }
+.ingr-group:first-child .ingr-group-label { padding-top: 0; }
+
+/* The renderer's widths (the widest quantity and unit on the card) keep every table in line. */
+.ingr-table .ingr-qty  { width: max(3.154rem, var(--ingr-qty-width, 0px)); min-width: max(3.154rem, var(--ingr-qty-width, 0px)); padding-right: 0.549rem; }
+.ingr-table .ingr-unit { width: max(2.88rem, var(--ingr-unit-width, 0px)); min-width: max(2.88rem, var(--ingr-unit-width, 0px)); padding-right: 0.96rem; }
+
+/* ---------------------------------------------------------------- directions */
+
+.direction {
+  display: grid;
+  grid-template-columns: 0.46in minmax(0, 1fr);
+  column-gap: 0.549rem;
+}
+.direction + .direction,
+.direction-extra + .direction,
+.direction + .direction-extra { margin-top: 0.5em; }
+
+/* The step number stands in the quantity column, so numbers and quantities share an edge. */
+.direction-number { font-weight: bold; text-align: right; }
+.direction-body { min-width: 0; }
+/* Every step of a run is numbered; the only step of one is not, and keeps the text's axis. */
+.direction-alone > .direction-body { grid-column: 2; }
+.direction-extra { padding-left: 3.703rem; }
+
+.direction-label { font-weight: bold; }
+.direction-label::after { content: " —"; font-weight: normal; }
+
+/* A part: its name in bold, as its ingredient group is named, over its steps. */
+.part + .part { margin-top: 0.762rem; }
+.part-title { font-size: 1em; font-weight: bold; line-height: inherit; margin: 0 0 0.286rem; }
+/* A part heading's qualifier after an em dash (`### Biga — 50% hydration`): lighter and smaller than the name. */
+.part-qualifier { font-weight: 400; font-size: 0.85em; }
+
+.callout {
+  margin: 0.476rem 0 0;
+  font-size: 0.92em;
+  line-height: 1.36;
+}
+.callout-label { font-size: 0.82em; font-weight: bold; letter-spacing: 0.06em; text-transform: uppercase; margin-right: 0.3em; }
+
+.md-code { font-size: 0.9em; }
+.md-rule { border: 0; border-top: var(--grid-hair); margin: 0.762rem 0; }
+
+/* ---------------------------------------------------------------- components */
+
+.components { padding: 0 0 1.048rem; }
+
+/* A component: a rule across the sheet and its name, flush left. */
+.component { margin-top: 1.238rem; }
+.component-title {
+  font-weight: bold;
+  font-size: 1.3em;
+  line-height: 1.15;
+  letter-spacing: -0.008em;
+  margin: 0 0 0.762rem;
+  padding-top: 0.571rem;
+  border-top: 1.25pt solid var(--card-ink);
+}
+.card-header + .components > .component:first-child > .component-title { border-top-width: 0.5pt; }
+
+/* A component inside a component: a hairline and its name at text size. */
+.component .component { margin-top: 0.952rem; }
+.component > .component-title + .component { margin-top: 0; }
+.component .component > .component-title {
+  font-size: 1em;
+  letter-spacing: 0;
+  margin-bottom: 0.571rem;
+  padding-top: 0.476rem;
+  border-top: var(--grid-hair);
+}
+.component + .steps { margin-top: 0.952rem; padding-top: 0.667rem; border-top: var(--grid-hair); }
+
+/* One step, one row: its name in the label column; ingredients, then the instruction. */
+.step { grid-template-rows: auto auto; }
+.step + .step { margin-top: 0.762rem; }
+/* No break-after on the head: it spans to the step's last row, where `avoid` would chain
+   every step to the next and make the whole run unbreakable. The step itself is kept whole. */
+.step-head { grid-column: 1; grid-row: 1 / span 2; }
+.step-ingredients { grid-column: 2; padding-bottom: 0.286rem; }
+.step-body { grid-column: 2; }
+.step-title { font-size: 0.9em; font-weight: 500; line-height: calc(1.37 / 0.9); margin: 0; }
+/* "Chill" / "Chill." — the name is the instruction: it moves to the axis and reads as text
+   (the core hides .step-echo's body). */
+.step-echo > .step-head { grid-column: 2; grid-row: 2; }
+.step-echo > .step-ingredients { grid-row: 1; }
+.step-echo .step-title { font-size: 1em; font-weight: normal; line-height: inherit; }
+.step-echo .step-title::after { content: "."; }
+/* A bare step (a Choose branch) has no name: its content keeps the axis. */
+.step > .step-ingredients:first-child,
+.step > .step-body:first-child { grid-column: 2; }
+
+/* Choose: pick one branch. */
+.choose-label { margin: 0 0 0.571rem calc(var(--grid-label) + var(--grid-gap)); font-weight: bold; }
+.choose-text { font-weight: normal; }
+.choose-branch { position: relative; margin: 0.952rem 0 0; }
+.branch-label {
+  position: absolute; left: 0; top: 0;
+  width: var(--grid-label);
+  font-size: 0.9em; font-weight: 500; line-height: calc(1.37 / 0.9);
+  margin: 0;
+}
+.branch-marker { display: block; font-size: 0.82em; font-weight: bold; letter-spacing: 0.06em; text-transform: uppercase; }
+
+.extra-section { margin-top: 1.333rem; }
+.section-title { font-size: 1em; font-weight: bold; margin: 0 0 0.286rem; }
+
+/* --------------------------------------------------------------------- notes */
+
+.notes { font-size: 0.92em; line-height: 1.38; }
+.note + .note { margin-top: 0.5em; }
+.note-label { font-weight: bold; }
+.note-label::after { content: " —"; font-weight: normal; }
+
+/* -------------------------------------------------------------- narrow paper */
+
+/* A narrower label column on half letter and index cards. */
+@container card-page (max-width: 6.6in) {
+  .card { --grid-label: 6.2rem; --grid-gap: 0.9rem; }
+  .card-title { font-size: 2.2em; }
+}

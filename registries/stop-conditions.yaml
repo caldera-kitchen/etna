@@ -1,0 +1,55 @@
+# Etna stop-conditions registry — when an operation is "done": after a time, at a
+# temperature, or on a cue the cook sees.
+#
+# Read by the kinds of a mark (SPEC §5.3, tools/src/core/kinds.ts). A mark's words are
+# matched without regard to case, whole words only. Nothing here changes a chart or a card.
+#
+# Fields
+#   units    the words that make a number a time or a temperature, each with its spellings.
+#            A time unit is also read with an s (`minute`, `minutes`).
+#   counts   words that stand for a number before a time unit (`a few minutes`, `an hour`).
+#   between  words that may come between the number and the unit (`8 more minutes`).
+#   words    words that are a time on their own (`overnight`).
+#   roles    temperature only: the words before a temperature, in its own mark, that say
+#            whether it is a temperature to set (the oven's) or one to reach (the food's).
+#            The nearest such word before the temperature decides; a word listed under
+#            `otherwise` decides only when no other is there (`to` follows a preheat as often
+#            as it opens a temperature to reach). With none, the role is unknown.
+#   opens    cue only: the words a cue begins with (`until doubled`).
+version: 1
+categories:
+  - kind: duration
+    units:
+      - name: second
+        aliases: [sec, secs]
+      - name: minute
+        aliases: [min, mins]
+      - name: hour
+        aliases: [hr, hrs]
+      - name: day
+      - name: week
+    # Every word the private collection of recipes Etna was developed on puts before a time
+    # unit for its number, by how often:
+    # several 22, a few 21, an 15, a 10, one 5, a couple of 5, three 3, ten 2, five 1,
+    # fifteen 1, half an 1.
+    counts: [several, a few, an, a, one, a couple of, three, ten, five, fifteen, half an]
+    # N more minutes 20, N additional minutes 1
+    between: [more, additional]
+    # 69 times in the collection.
+    words: [overnight]
+  - kind: temperature
+    units:
+      - name: Fahrenheit
+        aliases: ["°F", "° F", "ºF", degrees F, degrees Fahrenheit]
+      - name: Celsius
+        aliases: ["°C", "° C", "ºC", degrees C, degrees Celsius]
+      - name: degrees
+        aliases: ["°"]
+    roles:
+      reach: [until, till, reaches, reach, registers, internal, stop at]
+      set: [at, oven, preheat, preheated]
+      otherwise:
+        reach: [to]
+  - kind: cue
+    note: "Free-text sensory cue, e.g. 'until golden', 'until thick', 'until a skewer comes out clean'."
+    opens: [until, till, when]

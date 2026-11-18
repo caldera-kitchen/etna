@@ -1,0 +1,37 @@
+<article class="card card-{{theme}}">
+  <header class="card-header card-row">
+    <div class="card-label">
+      {{#meta}}
+      <p class="card-meta">{{meta}}</p>
+      {{/meta}}
+    </div>
+    <h1 class="card-title">{{title}}</h1>
+  </header>
+  {{#intro}}
+  <section class="card-row">
+    <div class="card-label"></div>
+    <div class="intro">{{intro}}</div>
+  </section>
+  {{/intro}}
+  {{#ingredients}}
+  <section class="card-row">
+    <h2 class="card-label">{{label.ingredients}}</h2>
+    <div class="ingredients">{{ingredients}}</div>
+  </section>
+  {{/ingredients}}
+  {{#directions}}
+  <section class="card-row">
+    <h2 class="card-label">{{label.directions}}</h2>
+    <div class="directions">{{directions}}</div>
+  </section>
+  {{/directions}}
+  {{#components}}
+  <div class="components">{{components}}</div>
+  {{/components}}
+  {{#notes}}
+  <section class="card-row">
+    <h2 class="card-label">{{label.notes}}</h2>
+    <footer class="notes">{{notes}}</footer>
+  </section>
+  {{/notes}}
+</article>

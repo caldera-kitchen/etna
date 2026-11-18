@@ -1,0 +1,4 @@
+# A structured recipe ending in a Notes section: one list item per note, a continuation
+# paragraph, a bold-lead item and a callout.
+# The section is not a step: no step-missing-instruction, no ingredient rules on its bullets.
+findings: []

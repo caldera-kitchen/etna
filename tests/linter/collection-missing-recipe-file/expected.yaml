@@ -1,0 +1,7 @@
+# A collection (`input/` is a directory of recipe directories). `test-leftovers` has no
+# recipe.md. Collection findings also name the recipe directory they belong to.
+findings:
+  - rule: missing-recipe-file
+    severity: error
+    at: null
+    recipe: test-leftovers

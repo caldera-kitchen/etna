@@ -1,0 +1,9 @@
+# Two steps are called "Mix": the second is a duplicate heading (warning), and the reference
+# `#mix` cannot say which one it means (error).
+findings:
+  - rule: duplicate-heading
+    severity: warning
+    at: "Mix"
+  - rule: ambiguous-reference
+    severity: error
+    at: "Combine"

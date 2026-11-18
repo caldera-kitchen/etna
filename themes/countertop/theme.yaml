@@ -1,0 +1,63 @@
+# Countertop — large type, to cook from at arm's length or further.
+# See README.md for the idea; every key is explained in ../README.md.
+
+etna-theme: 2
+kind: card
+name: Countertop
+description: Large-type kitchen sheet. Big figures, bold quantities, one step at a glance.
+
+page:
+  size: letter
+  margin: 0.55in 0.7in 0.8in
+  papers:
+    letter: {}
+    a4: {}
+    half-letter: { margin: 0.45in 0.45in 0.65in, font-size: 12pt, fit: { min: 11pt, max: 13pt } }
+
+# Large type is the point: fitting may shrink it only a little.
+fit:
+  min: 12.5pt
+  max: 16pt
+
+skeleton: card.html
+
+# Free fonts the renderer delivers (etna fonts; see ../README.md#web-fonts). Only the
+# weights and styles the stylesheet uses.
+webfonts:
+  - family: Merriweather   # text and title: 400 to 700 (the title is 500), italic 400 to 700
+    google: 'Merriweather:ital,wght@0,400..700;1,400..700'
+
+options:
+  fonts:
+    # Free fonts always, delivered from webfonts:; the generic family is the last resort.
+    body: 'Merriweather, serif'
+    title: 'Merriweather, serif'
+    title-weight: 500       # the title's weight: card.css sets it from --card-font-title-weight
+  font-size: 14pt
+
+  # Structured recipes: each step carries its own ingredients (hoisted | paired).
+  layout: paired
+
+  slots:
+    intro: true
+    notes: true           # a place for the notes; printed only when asked (--notes)
+    yield: true
+    source: false
+    version: false
+    license: false
+
+  display:
+    units: symbol
+    fractions: unicode
+    range: dash
+
+labels:
+  yield: Makes
+  choose: Choose one
+  option: Option
+  see: see
+  from: from
+  above: above
+  below: below
+  callouts:
+    Checkpoint: Checkpoint

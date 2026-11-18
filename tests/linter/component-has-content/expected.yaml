@@ -1,0 +1,6 @@
+# "Dough" has child headings, so it is a component; its own bullets and prose belong in a
+# step. One finding per component. "Baking" carries only a callout, which is fine.
+findings:
+  - rule: component-has-content
+    severity: error
+    at: "Dough"

@@ -1,0 +1,93 @@
+# Etna operations registry — the canonical "verbs" of a step.
+# Recipes may use any operation label; unknown ones stay untyped prose. Add entries here
+# when a recipe surfaces a new operation. Grows bottom-up.
+#
+# Read by the kinds of a mark (SPEC §5.3, tools/src/core/kinds.ts): a mark that opens with a
+# name or alias here is an `action` (`Reduce heat`, `rotate the tray`). Words are matched
+# without regard to case, whole words only, and only as written: `baking` is not `bake`.
+# A word that is also a tool (`whisk`) is the action when it opens the mark, the tool
+# anywhere else. Nothing here changes a chart or a card.
+#
+# `before` lists the words a mark may open with ahead of its operation (`let rest`, `Let
+# cool`): let is followed by cool, rest, stand, rise or sit 126 times in the collection the
+# counts below come from.
+#
+# Counts after an entry are prose clauses plus headings that open with the word, in the
+# private collection of recipes Etna was developed on. Entries without a count have none.
+version: 1
+before: [let]
+operations:
+  - name: combine
+    aliases: [add, mix in, incorporate]
+  - name: mix
+    aliases: [stir]
+  - name: blend
+    # whirl 8: a word for the blender (a hand-drawn chart's box: "Whirl in Vitamix").
+    aliases: [blitz, puree, purée, whirl]
+  - name: fold
+  - name: whip
+    aliases: [whisk, beat]
+  - name: knead
+  - name: boil
+  - name: simmer
+  - name: reduce
+  - name: melt
+  - name: bake
+  - name: chill
+    aliases: [refrigerate]
+  # Dough left to grow. `raise` is a word for it too (31 clauses in the collection).
+  - name: rise
+    aliases: [raise, proof, prove]
+  - name: freeze
+  - name: churn
+  - name: drain
+  # The common ones of the collection.
+  # Heat and cool
+  - name: cook  # 386
+  - name: preheat  # 274
+  - name: heat  # 195
+  - name: cool  # 176
+  - name: sauté  # 78 (sauté 44 headings + 34 clauses; saute 37)
+    aliases: [saute]
+  - name: brown  # 41
+  - name: roast  # 30
+  - name: fry  # 21
+  # Wait
+  - name: rest  # 125; wait 7, stand 9 (let stand)
+    aliases: [wait, stand]
+  - name: soak  # 22
+  # Shape and cut
+  - name: roll  # 208
+  - name: cut  # 157
+  - name: divide  # 134
+  - name: form  # 79
+  - name: shape  # 63
+  - name: slice  # 32
+  - name: stretch  # 23
+  # Mix and sort
+  - name: toss  # 71
+  - name: pulse  # 68
+  - name: strain  # 33
+  - name: sift  # 31
+  # Move and finish
+  - name: place  # 318
+  - name: remove  # 242
+  - name: pour  # 183
+  - name: transfer  # 119
+  # reserve the beef stock (Chili with Short Ribs in the cookbook): set aside for a later step
+  - name: reserve
+  - name: brush  # 102
+  - name: sprinkle  # 92
+  - name: spread  # 91
+  - name: fill  # 65
+  - name: serve  # 64
+  - name: season  # 56
+  - name: press  # 53
+  - name: rotate  # 24
+  - name: bring  # 88 (bring to a boil)
+  - name: return  # 62
+  - name: line  # 61
+  - name: scrape  # 41
+  - name: pat  # 22
+  # microwave 21: the verb when it opens the mark, the appliance (tools.yaml) anywhere else.
+  - name: microwave

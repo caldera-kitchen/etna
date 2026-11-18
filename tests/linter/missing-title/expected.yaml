@@ -1,0 +1,5 @@
+# The body has no H1.
+findings:
+  - rule: missing-title
+    severity: error
+    at: null

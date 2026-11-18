@@ -1,0 +1,6 @@
+# Neither Ingredients nor Directions. The no-ingredients / no-directions warnings would only
+# repeat the error, so they are not reported with it.
+findings:
+  - rule: missing-sections
+    severity: error
+    at: null

@@ -1,0 +1,74 @@
+# Dense — flow's colors and shapes at a smaller size, with tighter spacing, so a long recipe
+# still prints on one letter page at a size you can read. See README.md.
+
+etna-theme: 1
+kind: chart
+name: Dense
+description: Flow, smaller and tighter, so a long recipe fits one page.
+
+values:
+  margin: 16
+  palette: app                # in the GUI, the colors follow the app's appearance; it is never inherited from flow
+
+  fonts: card                 # card: set in the card style's fonts (GUI, etna dag --card) | own: always these
+  font-family: 'Arimo, "Helvetica Neue", Helvetica, Arial, sans-serif'
+  text-measure: sans
+  font-size: 11
+  line-height: 1.15
+  char-width: 0.55
+
+  title-font-family: 'Arimo, "Helvetica Neue", Helvetica, Arial, sans-serif'
+  title-text-measure: sans
+  title-font-size: 20
+  title-font-weight: 700
+  subtitle-font-size: 11
+  title-wrap: 30
+  title-stroke-width: 3
+  title-padding-x: 22
+  title-padding-y: 9
+  title-gap: 18
+
+  ingredient-stroke-width: 1.5
+  ingredient-radius: 4
+  ingredient-font-weight: 400
+  ingredient-padding-x: 7
+  ingredient-padding-y: 5
+  ingredient-min-height: 26
+  ingredient-min-width: 130
+  ingredient-wrap: 28
+
+  operation-stroke-width: 1.5
+  operation-radius: 3
+  operation-point: 16
+  operation-padding-x: 18
+  operation-padding-y: 6
+  operation-min-height: 30
+  operation-min-width: 120
+
+  edge-stroke-width: 1.5
+  edge-radius: 5
+  arrow-length: 8
+  arrow-width: 7
+
+  row-gap: 16
+  column-gap: 34
+  channel-gap: 34
+  lane-gap: 9
+  port-offset: 22
+  turn-depth: 14
+  branch-gap: 8
+  caption-font-size: 9
+
+  component-stroke-width: 1.5
+  component-radius: 10
+  component-padding-x: 14
+  component-padding-top: 30
+  component-padding-bottom: 12
+  component-gap: 16
+  component-title-font-size: 12
+  component-title-stroke-width: 2
+
+  choose-stroke-width: 1
+  choose-dash: '4 3'
+  checkpoint-stroke-width: 1.5
+  checkpoint-radius: 7

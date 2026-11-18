@@ -1,0 +1,211 @@
+# Etna tools registry — equipment an operation may use.
+# Unknown tools are allowed (untyped); add entries as recipes surface them.
+#
+# Read by the kinds of a mark (SPEC §5.3, tools/src/core/kinds.ts): a name or alias anywhere
+# in a mark makes those words a `tool`, which carries the entry's `kind`. The longest name
+# wins (`stand mixer` over `mixer`), and a plural is read too (`bowls`). Nothing in the
+# drawing path reads it (a chart box shows the words a step marks, ADR 0021). `kind` sorts
+# the entries:
+#   machine    a powered tool with settings (blender, mixer)
+#   appliance  a fixed appliance (oven, fridge)
+#   cookware   a pot, pan or dish the food cooks in
+#   vessel     a bowl or container
+#   utensil    a hand tool (whisk, spatula)
+# Aliases are whole words, matched without regard to case; a recipe's own word is kept as
+# written ("Vitamix", not "high-speed blender").
+version: 1
+tools:
+  # machines
+  - name: high-speed blender
+    kind: machine
+    aliases: [Vitamix]
+  - name: blender
+    kind: machine
+  - name: immersion blender
+    kind: machine
+    aliases: [stick blender]
+  - name: stand mixer
+    kind: machine
+    aliases: [mixer, KitchenAid, electric mixer]
+  - name: spiral mixer
+    kind: machine
+    aliases: [Famag, Famag IM-5S]
+  - name: hand mixer
+    kind: machine
+    # electric whisk: what one cinnamon roll recipe calls a hand mixer
+    aliases: [electric whisk]
+  - name: food processor
+    kind: machine
+  - name: ice cream maker
+    kind: machine
+    aliases: [ice cream machine]
+  - name: pressure cooker
+    kind: machine
+    aliases: [Instant Pot]
+  - name: slow cooker
+    kind: machine
+  - name: bread machine
+    kind: machine
+  - name: pasta machine
+    kind: machine
+  - name: food mill
+    kind: machine
+  # appliances
+  - name: oven
+    kind: appliance
+  - name: toaster oven
+    kind: appliance
+  - name: microwave
+    kind: appliance
+  - name: refrigerator
+    kind: appliance
+    aliases: [fridge]
+  - name: freezer
+    kind: appliance
+  - name: grill
+    kind: appliance
+  - name: broiler
+    kind: appliance
+  - name: proofer
+    kind: appliance
+    aliases: [proofing box]
+  # cookware
+  - name: dutch oven
+    kind: cookware
+  - name: pot
+    kind: cookware
+    aliases: [stockpot, stock pot, large pot]
+  - name: saucepan
+    kind: cookware
+    aliases: [sauce pan]
+  - name: skillet
+    kind: cookware
+    aliases: [frying pan, cast iron skillet, cast-iron skillet]
+  - name: sauté pan
+    kind: cookware
+    aliases: [saute pan]
+  - name: wok
+    kind: cookware
+  - name: griddle
+    kind: cookware
+  - name: waffle iron
+    kind: appliance
+  - name: double boiler
+    kind: cookware
+  - name: sheet pan
+    kind: cookware
+    # baking tray 4
+    aliases: [baking sheet, rimmed baking sheet, cookie sheet, half-sheet pan, jelly roll pan, baking tray]
+  - name: cake pan
+    kind: cookware
+  - name: loaf pan
+    kind: cookware
+  - name: muffin tin
+    kind: cookware
+    aliases: [muffin pan]
+  - name: bundt pan
+    kind: cookware
+  - name: springform pan
+    kind: cookware
+  - name: tube pan
+    kind: cookware
+  - name: tart pan
+    kind: cookware
+  - name: pie plate
+    kind: cookware
+    aliases: [pie dish, pie pan]
+  - name: baking dish
+    kind: cookware
+    aliases: [casserole, casserole dish]
+  - name: roasting pan
+    kind: cookware
+  - name: baking steel
+    kind: cookware
+    aliases: [pizza steel]
+  - name: baking stone
+    kind: cookware
+    aliases: [pizza stone]
+  - name: pan
+    kind: cookware
+  # vessels
+  - name: bowl
+    kind: vessel
+    aliases: [mixing bowl]
+  # container 30, airtight container 10
+  - name: container
+    kind: vessel
+    aliases: [airtight container]
+  # plate 12
+  - name: plate
+    kind: vessel
+    aliases: [serving plate]
+  # measuring cup 6
+  - name: measuring cup
+    kind: vessel
+  # A stand mixer's bowl, not the machine: the longer name wins over the alias "mixer".
+  - name: mixer bowl
+    kind: vessel
+    aliases: [bowl of a stand mixer, bowl of the mixer]
+  # utensils
+  - name: whisk
+    kind: utensil
+  - name: hands
+    kind: utensil
+    # hand 42 (by hand, your hand)
+    aliases: [hand]
+  - name: spatula
+    kind: utensil
+    # rubber spatula 25
+    aliases: [offset spatula, rubber spatula]
+  # The mixer's attachments: dough hook 16, paddle 6, flat beater 6, whisk attachment 5.
+  - name: dough hook
+    kind: utensil
+  - name: paddle
+    kind: utensil
+    aliases: [flat beater, paddle attachment]
+  - name: whisk attachment
+    kind: utensil
+  # spoon 18, wooden spoon 8, slotted spoon 5
+  - name: spoon
+    kind: utensil
+  - name: wooden spoon
+    kind: utensil
+  - name: slotted spoon
+    kind: utensil
+  # fork 17, knife 12, cutting board 5
+  - name: fork
+    kind: utensil
+  - name: knife
+    kind: utensil
+  - name: cutting board
+    kind: utensil
+  - name: rolling pin
+    kind: utensil
+  # pastry brush 6, potato masher 5
+  - name: pastry brush
+    kind: utensil
+  - name: potato masher
+    kind: utensil
+  - name: bench scraper
+    kind: utensil
+    # dough scraper 4
+    aliases: [dough scraper]
+  - name: wire rack
+    kind: utensil
+    aliases: [cooling rack]
+  - name: thermometer
+    kind: utensil
+  - name: sieve
+    kind: utensil
+    aliases: [strainer, fine-mesh sieve, fine-mesh strainer]
+  - name: piping bag
+    kind: utensil
+    aliases: [pastry bag]
+  - name: grater
+    kind: utensil
+    aliases: [microplane, zester]
+  - name: tongs
+    kind: utensil
+  - name: ricer
+    kind: utensil
+    aliases: [potato ricer]

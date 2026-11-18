@@ -1,0 +1,5 @@
+# Directions are a numbered list; a section holding only a paragraph has no directions.
+findings:
+  - rule: no-directions
+    severity: warning
+    at: "Directions"

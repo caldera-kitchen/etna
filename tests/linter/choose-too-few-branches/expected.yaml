@@ -1,0 +1,9 @@
+# "Cooking method" offers a choice of one branch. "Finish" is a step: it has no child
+# headings to choose between at all.
+findings:
+  - rule: choose-too-few-branches
+    severity: error
+    at: "Cooking method"
+  - rule: choose-too-few-branches
+    severity: error
+    at: "Finish"

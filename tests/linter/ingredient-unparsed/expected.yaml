@@ -1,0 +1,5 @@
+# "2 cups" has a quantity and a unit but no item.
+findings:
+  - rule: ingredient-unparsed
+    severity: warning
+    at: "Cook"

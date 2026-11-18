@@ -1,0 +1,5 @@
+# The Ingredients section is there but lists nothing.
+findings:
+  - rule: no-ingredients
+    severity: warning
+    at: "Ingredients"

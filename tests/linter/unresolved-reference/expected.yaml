@@ -1,0 +1,5 @@
+# `#pasta` matches no heading. `#sauce` resolves.
+findings:
+  - rule: unresolved-reference
+    severity: error
+    at: "Combine"

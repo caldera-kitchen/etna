@@ -1,0 +1,5 @@
+# "salt" has no quantity. "2 large eggs" is quantity + unit (a size) + item, so it is fine.
+findings:
+  - rule: missing-quantity
+    severity: warning
+    at: "Boil"

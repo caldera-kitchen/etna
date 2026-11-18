@@ -1,0 +1,98 @@
+# Etna checks for a recipe collection.
+#
+# On every pull request and every push to main:
+#   1. etna lint          errors fail the run; warnings are only reported
+#   2. etna fmt --check   fails when a recipe is not in the canonical source style
+# On a push to main only:
+#   3. etna catalog       rebuilds catalog.json (what the web GUI loads for browsing and
+#                         search) and commits it when it changed
+#
+# ETNA_REPO below is where the Etna tools live; ETNA_REF is the branch or release tag of it to
+# use (pin a tag to keep your checks from moving when Etna changes).
+
+name: Etna
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+env:
+  ETNA_REPO: caldera-kitchen/etna
+  ETNA_REF: main
+
+permissions:
+  contents: read
+
+jobs:
+  check:
+    name: Lint and format
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out the collection
+        uses: actions/checkout@v4
+
+      - name: Check out the Etna tools
+        uses: actions/checkout@v4
+        with:
+          repository: ${{ env.ETNA_REPO }}
+          ref: ${{ env.ETNA_REF }}
+          path: .etna
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+          cache-dependency-path: .etna/tools/package-lock.json
+
+      - name: Install the Etna tools
+        run: npm ci --omit=dev
+        working-directory: .etna/tools
+
+      - name: Lint
+        run: node .etna/tools/bin/etna.js lint .
+
+      - name: Check formatting
+        run: node .etna/tools/bin/etna.js fmt --check .
+
+  catalog:
+    name: Rebuild catalog.json
+    needs: check
+    if: github.event_name == 'push'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - name: Check out the collection
+        uses: actions/checkout@v4
+
+      - name: Check out the Etna tools
+        uses: actions/checkout@v4
+        with:
+          repository: ${{ env.ETNA_REPO }}
+          ref: ${{ env.ETNA_REF }}
+          path: .etna
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+          cache-dependency-path: .etna/tools/package-lock.json
+
+      - name: Install the Etna tools
+        run: npm ci --omit=dev
+        working-directory: .etna/tools
+
+      - name: Build the catalog
+        run: node .etna/tools/bin/etna.js catalog .
+
+      - name: Commit the catalog if it changed
+        run: |
+          git add catalog.json
+          if git diff --cached --quiet; then
+            echo "catalog.json is up to date"
+          else
+            git -c user.name="etna-catalog" -c user.email="etna-catalog@users.noreply.github.com" \
+              commit -m "Rebuild catalog.json [skip ci]"
+            git push
+          fi

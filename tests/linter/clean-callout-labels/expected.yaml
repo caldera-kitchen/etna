@@ -1,0 +1,4 @@
+# Any label is an informational aside, printed as written: `Warning`, `note`, `Tip`, `Serving`,
+# `Make ahead`, `Variation`. The linter is quiet about them. `Check`, `Close` and `Cheese` are
+# words near a keyword but not mistakes for one (SPEC §5.1).
+findings: []

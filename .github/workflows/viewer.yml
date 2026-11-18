@@ -1,0 +1,79 @@
+# Builds the Etna web viewer (etna build-web) and publishes it with GitHub Pages.
+#
+# A project's Pages site is served under a sub-path, https://<owner>.github.io/<repo>/; the
+# build is made for that (every URL in it is relative) and needs nothing set for it.
+#
+# It needs the repository's Settings > Pages > Source set to "GitHub Actions". The viewer opens on the
+# recipes that ship with Etna (cookbook/ in this repository, built into the site as its default
+# source and read from the site itself, not from GitHub); a visitor can remove it and add their
+# own sources, and a link can carry one: ?repo=owner/name.
+#
+# It publishes only when the type check and the tests pass: the first job runs tests.yml, and
+# the build waits for it. tests.yml leaves pushes to main to this workflow, so a push to main
+# runs the suite once.
+
+name: Viewer
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+# One deployment at a time; a newer push does not cancel one already publishing.
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  tests:
+    name: Tests
+    uses: ./.github/workflows/tests.yml
+
+  build:
+    name: Build the viewer
+    needs: tests
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+          cache-dependency-path: tools/package-lock.json
+
+      # All dependencies: the bundler (esbuild) is a development dependency.
+      - name: Install the Etna tools
+        run: npm ci
+        working-directory: tools
+
+      # Cards load their free fonts from Google Fonts (--fonts web, the default); the chart's
+      # fonts and the PDF's come from the committed font cache, themes/.fonts/. The recipes
+      # that ship with Etna are copied in under default-source/ and listed for every first-time
+      # visitor. Settings > About links to this repository (whatever its owner and name), its docs/ and its contributing guide.
+      - name: Build the viewer
+        run: node bin/etna.js build-web --out ../dist/viewer --default-source ../cookbook --source-url "${{ github.server_url }}/${{ github.repository }}"
+        working-directory: tools
+
+      - uses: actions/configure-pages@v5
+
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: dist/viewer
+
+  deploy:
+    name: Publish to GitHub Pages
+    needs: build
+    runs-on: ubuntu-latest
+    permissions:
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v4

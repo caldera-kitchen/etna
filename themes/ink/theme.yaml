@@ -1,0 +1,60 @@
+# Ink — the flow chart in black on white, for a black-and-white laser printer.
+# Ingredients and operations are told apart by shape and stroke, never by color or a gray
+# fill: lighter boxes for what goes in, heavier hexagons for what you do, both with the
+# smallest rounding, as if drawn with a pen. See README.md.
+
+etna-theme: 1
+kind: chart
+name: Ink
+description: Black on white for a laser printer. Pen-drawn boxes for ingredients, heavier hexagons for operations.
+
+values:
+  palette: own                # a fixed identity: the app's appearance never changes these colors
+  fonts: card                 # card: set in the card style's fonts (GUI, etna dag --card) | own: always these
+  font-family: 'Arimo, "Helvetica Neue", Helvetica, Arial, sans-serif'
+  text-measure: sans
+  char-width: 0.55
+  text-color: '#000000'
+
+  title-shape: rectangle
+  title-font-family: 'Arimo, "Helvetica Neue", Helvetica, Arial, sans-serif'
+  title-text-measure: sans
+  title-font-weight: 700
+  title-font-size: 28
+  title-stroke: '#000000'
+  title-stroke-width: 3
+  title-radius: 3
+  title-padding-x: 32
+  title-padding-y: 16
+
+  ingredient-fill: '#ffffff'
+  ingredient-stroke: '#000000'
+  ingredient-stroke-width: 1.5
+  ingredient-radius: 2
+  ingredient-text-color: '#000000'
+  ingredient-font-weight: 400
+
+  operation-fill: '#ffffff'
+  operation-stroke: '#000000'
+  operation-stroke-width: 2.25
+  operation-radius: 2
+  operation-text-color: '#000000'
+
+  edge-stroke: '#000000'
+  edge-stroke-width: 1.75
+  edge-radius: 6
+  arrow-length: 10
+  arrow-width: 8
+
+  caption-color: '#000000'
+
+  component-fill: '#ffffff'
+  component-stroke: '#000000'
+  component-stroke-width: 1
+  component-title-stroke-width: 1.5
+
+  choose-stroke: '#000000'
+  choose-stroke-width: 1
+  choose-dash: '4 3'
+  checkpoint-stroke: '#000000'
+  checkpoint-stroke-width: 1.5

@@ -1,0 +1,6 @@
+# `Fillings` is a group: a link to it stands for the custard and the jam, so the amount on
+# it cannot say how much of which (warning). The link itself still resolves.
+findings:
+  - rule: quantity-on-group-reference
+    severity: warning
+    at: "Fill"

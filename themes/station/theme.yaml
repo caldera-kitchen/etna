@@ -1,0 +1,74 @@
+# Station — a flow chart in the manner of the Mise card: Nunito Sans (embedded, free; Avenir
+# Next is the fallback), black hairlines, no color, the title set light and flush left over a
+# rule, as on the card. It keeps its own font: Mise is set in Figtree. See README.md.
+
+etna-theme: 1
+kind: chart
+name: Station
+description: Nunito Sans, black hairlines, no color, a light title flush left over a rule.
+
+values:
+  palette: own                # a fixed identity: the app's appearance never changes these colors
+  fonts: own                  # a fixed identity: a card style never changes these fonts
+  font-family: '"Nunito Sans", "Avenir Next", "Helvetica Neue", Helvetica, Arial, sans-serif'
+  text-measure: sans
+  font-size: 13
+  font-weight: 600
+  line-height: 1.3
+  char-width: 0.55
+  text-color: '#000000'
+
+  title-position: left
+  title-shape: underline
+  title-font-family: '"Nunito Sans", "Avenir Next", "Helvetica Neue", Helvetica, Arial, sans-serif'
+  title-text-measure: sans
+  title-font-size: 34
+  title-font-weight: 300
+  title-wrap: 30
+  title-stroke: '#000000'
+  title-stroke-width: 1.25
+  title-padding-x: 0
+  title-padding-y: 8
+  title-gap: 30
+
+  ingredient-fill: '#ffffff'
+  ingredient-stroke: '#000000'
+  ingredient-stroke-width: 0.75
+  ingredient-radius: 0
+  ingredient-text-color: '#000000'
+  ingredient-font-weight: 500
+  ingredient-padding-x: 12
+
+  operation-shape: pill
+  operation-fill: '#f3f3f1'
+  operation-stroke: '#000000'
+  operation-stroke-width: 1.25
+  operation-text-color: '#000000'
+  operation-font-weight: 600
+  operation-padding-x: 14
+
+  # Orthogonal edges (the default) with twice flow's corner, not `edge-style: curved`: a
+  # curved bend spans half of each run, so a long run (a reference edge down the outer lane)
+  # becomes a swoop of up to 350px that cuts across inner lanes and frames. Rounded corners
+  # keep every edge on its lane.
+  edge-radius: 16
+  edge-stroke: '#000000'
+  edge-stroke-width: 1
+  arrow-length: 8
+  arrow-width: 6
+
+  caption-color: '#000000'
+  caption-font-size: 10
+
+  component-fill: '#ffffff'
+  component-stroke: '#000000'
+  component-stroke-width: 0.75
+  component-radius: 0
+  component-title-font-size: 13
+  component-title-stroke-width: 0.75
+
+  choose-stroke: '#000000'
+  choose-stroke-width: 0.75
+  choose-dash: '3 3'
+  checkpoint-stroke: '#000000'
+  checkpoint-stroke-width: 1.25

@@ -1,0 +1,73 @@
+# Grid — a Swiss sheet: one heavy rule, one axis, labels in the margin column.
+# See README.md for the idea; every key is explained in ../README.md.
+
+etna-theme: 2
+kind: card
+name: Grid
+description: Swiss-style sheet. A label column on the left, everything else hung from one vertical axis.
+
+page:
+  size: letter
+  margin: 0.5in 0.6in 0.75in
+  papers:
+    letter: {}
+    a4: {}
+    half-letter: { margin: 0.4in 0.4in 0.6in, font-size: 9pt, fit: { min: 8pt, max: 10pt } }
+    index-5x7: { margin: 0.28in 0.3in 0.42in, font-size: 8pt, fit: { min: 7pt, max: 9pt } }
+
+# Fitting may shrink the text down to min to save a nearly empty last page; it never grows it.
+# A reader may pick any size from min to max (--size, the Size control). See ../README.md#fit.
+# Inter sets wide, and a Grid page leaves the label column empty: a last page up to 40 % full
+# (one recipe's second page, at 36 %) reads as nearly empty here.
+fit:
+  min: 9pt
+  max: 11.5pt
+  nearly-empty: 0.4
+
+skeleton: card.html
+
+# Free fonts the renderer delivers (etna fonts; see ../README.md#web-fonts). Only the
+# weights and styles the stylesheet uses.
+webfonts:
+  - family: Inter   # text and title: 400 to 700, and italic 400
+    google: 'Inter:ital,wght@0,400..700;1,400'
+
+options:
+  fonts:
+    # Free fonts always, delivered from webfonts:; the generic family is the last resort.
+    body: 'Inter, sans-serif'
+    title: 'Inter, sans-serif'
+    title-weight: 700       # the title's weight: card.css sets it from --card-font-title-weight
+  font-size: 10.5pt
+
+  # Structured recipes: each step carries its own ingredients (hoisted | paired).
+  layout: paired
+
+  slots:
+    intro: true
+    notes: true           # a place for the notes; printed only when asked (--notes)
+    yield: true
+    source: true
+    version: true
+    license: false
+
+  display:
+    units: symbol
+    fractions: unicode
+    range: dash
+
+labels:
+  ingredients: Ingredients
+  directions: Method
+  notes: Notes
+  yield: Yield
+  source: Source
+  version: Version
+  choose: Choose one
+  option: Option
+  see: see
+  from: from
+  above: above
+  below: below
+  callouts:
+    Checkpoint: Checkpoint

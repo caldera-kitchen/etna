@@ -1,0 +1,5 @@
+# "Rest" is used twice. Reported on the second use.
+findings:
+  - rule: duplicate-heading
+    severity: warning
+    at: "Rest"

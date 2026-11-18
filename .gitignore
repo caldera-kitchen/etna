@@ -1,0 +1,11 @@
+# macOS
+.DS_Store
+
+# The font cache (themes/.fonts/) is committed; only an interrupted download's temp file is not.
+themes/.fonts/*.part
+
+# The viewer as etna build-web writes it (tools/README.md, viewer.yml: ../dist/viewer).
+/dist/
+
+# Dependencies (a directory, or the symbolic link a worktree points at the main checkout's).
+node_modules

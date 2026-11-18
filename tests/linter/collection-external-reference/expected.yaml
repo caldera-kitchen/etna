@@ -1,0 +1,7 @@
+# External references are resolved against sibling recipe directories: `../test-stock/`
+# exists, `../test-croutons/` does not.
+findings:
+  - rule: unresolved-reference
+    severity: error
+    at: "Serve"
+    recipe: test-soup

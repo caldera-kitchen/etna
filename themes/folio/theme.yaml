@@ -1,0 +1,70 @@
+# Folio — a classic serif cookbook page.
+# See README.md for the idea; every key is explained in ../README.md.
+
+etna-theme: 2
+kind: card
+name: Folio
+description: Classic serif cookbook page. Centered title, small capitals, ingredients set where they are used.
+
+page:
+  size: letter
+  margin: 0.75in 1in 0.8in
+  papers:
+    letter: {}
+    a4: { margin: 0.75in 0.9in 0.8in }
+    half-letter: { margin: 0.6in 0.55in 0.65in, font-size: 10pt, fit: { min: 9pt, max: 11pt } }
+
+# Fitting may shrink the text down to min to save a nearly empty last page; it never grows it.
+# A reader may pick any size from min to max (--size, the Size control). See ../README.md#fit.
+fit:
+  min: 9.5pt
+  max: 12pt
+
+skeleton: card.html
+
+# Free fonts the renderer delivers (etna fonts; see ../README.md#web-fonts). Only the
+# weights and styles the stylesheet uses.
+webfonts:
+  - family: Spectral      # text and title: 400, 700, italic 400
+    google: 'Spectral:ital,wght@0,400;0,700;1,400'
+  - family: Spectral SC   # the small-capital labels (card.css sets it on them), 400
+    google: 'Spectral+SC:wght@400'
+
+options:
+  fonts:
+    # Free fonts always, delivered from webfonts:; the generic family is the last resort.
+    # Spectral SC is named here so the stack declares it; card.css puts it first on the
+    # small-capital labels. It has Spectral's glyphs, so it never stands in for Spectral.
+    body: 'Spectral, "Spectral SC", serif'
+    title: 'Spectral, serif'
+    title-weight: 400       # the title's weight: card.css sets it from --card-font-title-weight
+  font-size: 11pt
+
+  # Structured recipes: each step carries its own ingredients (hoisted | paired).
+  layout: paired
+  parts: paired           # a traditional recipe's parts: each a section, its ingredients then its steps
+
+  slots:
+    intro: true
+    notes: true           # a place for the notes; printed only when asked (--notes)
+    yield: true
+    source: true
+    version: false
+    license: false
+
+  display:
+    units: long           # grams, tablespoons — a book spells them out
+    fractions: unicode
+    range: dash
+
+labels:
+  yield: Makes
+  source: from
+  choose: Choose one
+  option: Option
+  see: see
+  from: from
+  above: above
+  below: below
+  callouts:
+    Checkpoint: Checkpoint

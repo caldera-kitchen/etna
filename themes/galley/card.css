@@ -1,0 +1,166 @@
+/* Galley — a dense two-column sheet.
+ *
+ * Everything under the title runs in two newspaper columns in a condensed face, so a
+ * recipe that takes three pages elsewhere takes one here. Each step is a small block:
+ * its name, what goes in, what to do. Nothing is wasted and nothing is large.
+ *
+ * The renderer's core stylesheet comes first; see ../README.md for what it does and for the
+ * classes and custom properties.
+ */
+
+:root {
+  --galley-gap: 2.592rem;
+  --galley-hair: 0.5pt solid var(--card-ink);
+  --card-paragraph-gap: 0.4em; /* between paragraphs of one step */
+}
+
+/* ------------------------------------------------------------------ the page */
+
+.card {
+  line-height: 1.33;
+  font-variant-numeric: lining-nums tabular-nums;
+}
+
+/* ----------------------------------------------------------------- the title */
+
+.card-header {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 2.16rem;
+  padding: 0 0 0.6rem;
+  border-bottom: 2pt solid var(--card-ink);
+  margin-bottom: 1rem;
+}
+
+.card-title {
+  font-family: var(--card-font-title);
+  font-weight: var(--card-font-title-weight);
+  font-size: 2.2em;
+  line-height: 1.05;
+  margin: 0;
+}
+
+.card-meta { margin: 0; font-size: 0.9em; text-align: right; flex: none; max-width: 45%; }
+.meta-item { margin-left: 1.2em; }
+.meta-label { font-weight: 600; }
+
+/* ---------------------------------------------------------------- the columns */
+
+.card-columns {
+  columns: 2;
+  column-gap: var(--galley-gap);
+  column-rule: var(--galley-hair);
+}
+
+.intro { padding-bottom: 0.8rem; }
+.intro p { margin: 0 0 0.4em; }
+.intro .callout p { margin-bottom: 0; } /* keeps the core's .callout p, which the line above overrides */
+
+/* --------------------------------------------------------------- ingredients */
+
+/* A plain ingredient list stays in one column when it can. */
+.card-columns > .ingredients { break-inside: avoid; padding-bottom: 1.1rem; }
+
+.ingr-table th,
+.ingr-table td {
+  padding: 0 0 0.1rem;
+  line-height: 1.26;
+}
+
+.ingr-table .ingr-group-label { font-weight: 600; padding-top: 0.6rem; padding-bottom: 0.1rem; }
+.ingr-group:first-child .ingr-group-label { padding-top: 0; }
+
+/* The renderer's widths (the widest quantity and unit on the card) keep every table in line. */
+.ingr-table .ingr-qty  { width: max(2.88rem, var(--ingr-qty-width, 0px)); min-width: max(2.88rem, var(--ingr-qty-width, 0px)); padding-right: 0.432rem; font-weight: 500; }
+.ingr-table .ingr-unit { width: max(1.872rem, var(--ingr-unit-width, 0px)); min-width: max(1.872rem, var(--ingr-unit-width, 0px)); padding-right: 0.648rem; }
+.ingr-table .ingr-item { font-weight: 500; }
+.ingr-note { font-weight: 400; }
+
+.ingr-ref-pointer { font-weight: 400; }
+.ingr-extra { margin: 0.6rem 0 0; }
+
+/* ---------------------------------------------------------------- directions */
+
+.direction + .direction,
+.direction-extra + .direction,
+.direction + .direction-extra { margin-top: 0.5em; }
+.direction-number { display: none; }
+.direction-label { font-weight: 600; }
+.direction-label::after { content: "."; }
+
+/* A part: its name, set like its ingredient group, over its steps. */
+.part + .part { margin-top: 0.6rem; }
+.part-title { font-size: 1em; font-weight: 600; line-height: inherit; margin: 0 0 0.1rem; }
+/* A part heading's qualifier after an em dash (`### Biga — 50% hydration`): lighter and smaller than the name. */
+.part-qualifier { font-weight: 400; font-size: 0.85em; }
+
+.callout {
+  margin: 0.3rem 0 0;
+  padding-left: 0.6rem;
+  border-left: 1.5pt solid var(--card-ink);
+  font-size: 0.94em;
+}
+.callout p + p { margin-top: 0.3em; }
+.callout-label { font-weight: 600; }
+.callout-label::after { content: ":"; }
+
+.md-list { margin: 0.25em 0 0; padding-left: 1.2em; }
+.md-quote { margin: 0.25em 0 0 1em; }
+.md-code { font-size: 0.9em; }
+.md-rule { border: 0; border-top: var(--galley-hair); margin: 0.6rem 0; }
+
+/* ---------------------------------------------------------------- components */
+
+.component { margin-top: 1rem; }
+.component-title {
+  font-weight: 700;
+  font-size: 1.25em;
+  line-height: 1.15;
+  margin: 0 0 0.5rem;
+  padding-top: 0.4rem;
+  border-top: 1.25pt solid var(--card-ink);
+}
+
+/* A component inside a component. */
+.component .component { margin-top: 0.8rem; }
+.component > .component-title + .component { margin-top: 0; }
+.component .component > .component-title {
+  font-size: 0.84em;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  margin-bottom: 0.3rem;
+  padding-top: 0;
+  border-top: 0;
+}
+.component + .steps { margin-top: 0.8rem; padding-top: 0.5rem; border-top: var(--galley-hair); }
+
+/* One step: its name, what goes in, what to do. */
+.step + .step { margin-top: 0.6rem; }
+.step-title { font-size: 1em; font-weight: 600; line-height: inherit; margin: 0; }
+.step-ingredients { padding: 0.1rem 0 0.2rem; }
+/* Nothing to list: the name runs in to the instruction. */
+.step:not(.step-with-ingredients) > .step-head { float: left; margin-right: 0.35em; }
+.step:not(.step-with-ingredients) .step-title::after { content: "."; }
+/* "Chill" / "Chill." — the name already says it (the core hides .step-echo's body). */
+.step-echo > .step-head { float: none; }
+.step::after { content: ""; display: block; clear: both; }
+
+/* Choose: pick one branch. */
+.choose-label { margin: 0 0 0.3rem; font-weight: 600; }
+.choose-text { font-weight: 400; }
+.choose-branch { margin: 0.6rem 0 0; padding-left: 0.7rem; border-left: 1.5pt solid var(--card-ink); break-inside: avoid; }
+.branch-label { font-size: 1em; font-weight: 600; margin: 0 0 0.1rem; }
+.branch-marker::after { content: " —"; font-weight: 400; }
+
+.extra-section { margin-top: 0.9rem; }
+.section-title { font-size: 1em; font-weight: 600; margin: 0 0 0.2rem; }
+
+/* --------------------------------------------------------------------- notes */
+
+.notes { margin-top: 1rem; padding-top: 0.5rem; border-top: var(--galley-hair); font-size: 0.94em; }
+.note + .note { margin-top: 0.4em; }
+.note p + p { margin-top: 0.3em; }
+.note-label { font-weight: 600; }
+.note-label::after { content: "."; }

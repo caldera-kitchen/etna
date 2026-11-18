@@ -1,0 +1,136 @@
+# Flow — the default flow-chart (DAG) theme.
+# The visual language of the three hand-made reference charts: a title pill, amber ingredient
+# boxes in one left column, light-blue hexagonal operations, orthogonal edges with rounded
+# corners. See README.md. `tools/src/dag/theme.ts` carries the same values as its defaults.
+
+etna-theme: 1
+kind: chart
+name: Flow
+description: Amber ingredient boxes, blue hexagonal operations, orthogonal edges.
+
+values:
+  # Page
+  background: '#ffffff'
+  margin: 32
+  palette: app                # app: in the GUI, the colors follow the app's appearance (Settings) | own: always these
+
+  # Text. The first family is the free font: the SVG and the PDF embed it from the font cache
+  # (etna fonts), and the layout measures text with its widths (every character 0.6 em, so one
+  # char-width). The rest are fallbacks.
+  fonts: card                 # card: in the GUI, and with etna dag --card, set in the card style's fonts | own: always these
+  font-family: '"JetBrains Mono", "SF Mono", Menlo, Consolas, "Courier New", monospace'
+  font-embedding: embedded    # embedded | none (a smaller SVG, with the machine's fonts)
+  text-measure: mono          # mono | sans | serif: for a first family without metrics (see ../README.md)
+  font-size: 14
+  font-weight: 700
+  line-height: 1.2
+  char-width: 0.6
+  text-color: '#333333'
+
+  # Title pill
+  title-position: center      # center | left | none
+  title-shape: pill           # pill | rectangle | plain | underline
+  title-font-family: '"JetBrains Mono", "SF Mono", Menlo, Consolas, "Courier New", monospace'
+  title-text-measure: mono
+  title-font-size: 30
+  title-font-weight: 400
+  subtitle-font-size: 15
+  title-wrap: 22              # characters per title line
+  title-fill: '#ffffff'
+  title-stroke: '#333333'
+  title-stroke-width: 5
+  title-radius: 0             # corners of the rectangle shape
+  title-padding-x: 44
+  title-padding-y: 20
+  title-gap: 40               # space under the title
+
+  # Ingredient boxes
+  ingredient-shape: rectangle # rectangle | pill | hexagon
+  ingredient-fill: '#ffeca9'
+  ingredient-stroke: '#0c7cba'
+  ingredient-stroke-width: 2
+  ingredient-stroke-dash: none
+  ingredient-radius: 6
+  ingredient-point: 16        # how far each end of a hexagon box reaches
+  ingredient-text-color: '#333333'
+  ingredient-font-weight: 700
+  ingredient-padding-x: 10
+  ingredient-padding-y: 12
+  ingredient-min-height: 52
+  ingredient-min-width: 200
+  ingredient-wrap: 26         # characters per item line; longer items wrap under the item column
+  ingredient-unit-width: 7    # a longer unit (teaspoon, tablespoons) runs on into the item instead of widening the unit column
+  ingredient-text: full       # full: each line as written | name: quantity, unit and name, nothing from the first comma on
+  ingredient-align: chart     # chart: quantities share one right edge across the chart | box: per box
+
+  # Operation nodes (elongated hexagons)
+  operation-shape: hexagon    # hexagon | rectangle | pill
+  operation-fill: '#c1e4f7'
+  operation-stroke: '#3aa6dd'
+  operation-stroke-width: 2
+  operation-stroke-dash: none
+  operation-radius: 5         # corner rounding
+  operation-point: 36         # how far each pointed end reaches
+  operation-text-color: '#333333'
+  prep-fill: '#ffffff'        # a preparation step (a preheat, a pan to line) joins nothing
+  prep-text-color: '#333333'  # its text
+  prep-dash: '5 4'            # its dashed outline
+  operation-font-weight: 700
+  operation-padding-x: 24
+  operation-padding-y: 14
+  operation-min-height: 64
+  operation-min-width: 200
+
+  # Edges
+  edge-style: orthogonal      # orthogonal | curved
+  edge-stroke: '#333333'
+  edge-stroke-width: 2.25
+  edge-radius: 8              # corner rounding; 0 for square corners
+  join-edges: separate        # separate: every edge its own lane, entry and exit point | bus: edges joining one node share a lane, edges leaving one share an exit
+  arrow-length: 11
+  arrow-width: 9
+  edge-label-at: 0.5          # a quantified reference's amount sits this far along an edge between neighbors (0 source, 1 arrowhead)
+  edge-label-short: 300       # an edge up to this long joins neighbors; 0 for none
+  edge-label-within: 72       # on a longer edge, the amount sits no farther than this from its start; 0 for no limit
+
+  # Layout
+  ingredient-side: left       # left | right (mirrors the chart)
+  row-gap: 44                 # between rows of the snake
+  column-gap: 64              # ingredient box to operation
+  channel-gap: 56             # spine column to third column (widens when several branches join)
+  lane-gap: 14                # between parallel edges in a channel
+  port-offset: 36             # where a second edge meets the flat top or bottom of a node
+  turn-depth: 24              # how far below the last row the spine dips when it turns back up
+  third-column: auto          # auto: whichever prints larger on the sheet | always: steps without ingredients beside the spine | never: every step on the spine
+  columns: auto               # auto: as many as print largest on the sheet | 1 to 6: folded into that many, each read down
+  trailing-down-max: 2        # this many closing steps without ingredients run down the third column; more run up
+  branch-max-steps: 1         # side components this small are drawn inline, without containers
+  branch-gap: 14              # extra space around a side branch
+  branch-caption: 1           # 1: name a side branch over its first row | 0: no name
+  caption-font-size: 11
+  caption-color: '#555555'
+  prep-label: Before you start  # caption over the preparation steps, drawn first in a row of their own
+
+  # Component containers
+  component-fill: '#fbfbfb'
+  component-stroke: '#333333'
+  component-stroke-width: 2
+  component-radius: 14
+  component-padding-x: 24
+  component-padding-top: 44
+  component-padding-bottom: 30
+  component-gap: 34
+  component-title-font-size: 15
+  component-title-fill: '#ffffff'
+  component-title-stroke-width: 3
+
+  # Choose (exclusive branches) and Checkpoint markers
+  choose-label: Choose
+  choose-stroke: '#333333'
+  choose-stroke-width: 1.5
+  choose-dash: '6 5'
+  checkpoint-fill: '#ffffff'
+  checkpoint-stroke: '#333333'
+  checkpoint-stroke-width: 2
+  checkpoint-radius: 9
+  optional-label: optional   # marks a component or step that may be left out, in parentheses, small

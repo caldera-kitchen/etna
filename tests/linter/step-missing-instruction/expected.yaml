@@ -1,0 +1,12 @@
+# "Blend the base" is a bare ingredient list; "Rest" is empty; "Sweeten" has a callout but a
+# callout is not an instruction.
+findings:
+  - rule: step-missing-instruction
+    severity: error
+    at: "Blend the base"
+  - rule: step-missing-instruction
+    severity: error
+    at: "Rest"
+  - rule: step-missing-instruction
+    severity: error
+    at: "Sweeten"

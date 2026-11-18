@@ -1,0 +1,66 @@
+# Etna modifiers registry — how an operation is performed: at what level and on what
+# setting. Unknown modifiers are allowed (untyped); add entries as recipes surface
+# them. Grows bottom-up.
+#
+# Read by the kinds of a mark (SPEC §5.3, tools/src/core/kinds.ts): a level, a dial with its
+# number, or a mode makes a mark's words a `setting`. Words are matched without regard to
+# case, whole words only. Nothing here changes a chart or a card.
+#
+# Fields
+#   name     the canonical word
+#   kind     level   how hot or how fast (`medium-low`, `high`). A level is a setting when
+#                    it is the whole mark, when one of `before` comes just ahead of it
+#                    (`on high`, `to medium-low`), or when a dial follows it (`medium heat`).
+#            dial    what a level sets (`heat`, `speed`); `number: true` when a number
+#                    follows it as the setting (`speed 6`).
+#            mode    a mode of an oven or a machine, a setting wherever it is (`fan`).
+#   aliases  other spellings
+#   number   dials only: true when the dial takes a number
+#
+# Counts are how often a word appears in the private collection of recipes Etna was
+# developed on.
+version: 1
+# The words that may come just before a level for it to be a setting: on high 29, to high 17,
+# over medium heat 107, at low speed 4.
+before: [on, over, to, at]
+modifiers:
+  # levels
+  - name: low
+    kind: level
+  - name: medium-low
+    kind: level
+    aliases: [medium low]
+  - name: medium
+    kind: level
+    # over moderate heat, 4
+    aliases: [moderate]
+  - name: medium-high
+    kind: level
+    aliases: [medium high]
+  - name: high
+    kind: level
+  # to full 16, full power 3
+  - name: full
+    kind: level
+  # on slow speed, slow speed 8 minutes
+  - name: slow
+    kind: level
+  # dials
+  - name: heat
+    kind: dial
+  # speed 2 31, speed 5 23, speed 3 8, speed 6 7, speed 4 7, speed 8 4; low speed 29
+  - name: speed
+    kind: dial
+    number: true
+  # full power 3, 50 percent power
+  - name: power
+    kind: dial
+  # bring to full pressure, of a pressure cooker (Chili with Short Ribs in the cookbook)
+  - name: pressure
+    kind: dial
+  # modes: on convection 7, convection 9, fan 5, with the fan on 1
+  - name: convection
+    kind: mode
+    aliases: [convection roast, convection bake]
+  - name: fan
+    kind: mode
