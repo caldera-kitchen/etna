@@ -37,14 +37,6 @@ const STYLES = ['flow', 'dense', 'ink', 'station'];
  * away or moves, so a fix is noticed. None today.
  */
 const KNOWN: Record<string, string> = {};
-/** Components whose parts do not start at one height (`starts all its parts at one height`): each such component holds a Choose. Not yet looked into. */
-const UNEVEN: string[] = [
-  'an-etna-recipe, dense, columns 4, third-column never: component:the-recipe parts start at 122, 148',
-  'an-etna-recipe, ink, columns 4, third-column never: component:the-recipe parts start at 208.2, 234.2',
-  'an-etna-recipe, station, columns 4, third-column never: component:the-recipe parts start at 189.1, 215.1',
-  'easter-bread, dense, columns 3, third-column never: component:bread parts start at 105, 119',
-  'easter-bread, dense, columns 4, third-column never: component:bread parts start at 105, 131, 105',
-];
 /** The structured recipes that ship (a traditional recipe has no chart). */
 const SHIPPED = findRecipes(join(ETNA_ROOT, 'cookbook'))
   .map((r) => ({ slug: r.slug, recipe: parse(readFileSync(r.file!, 'utf8')) }))
@@ -235,32 +227,53 @@ describe('a container cut by a fold', () => {
   // part's top is its first row's: the higher of the node and its ingredient box (a row is as
   // tall as the taller and centers the other), and, when a side branch's name stands over the
   // row, the room the engine gives that name above it (caption-font-size + 4).
-  it('starts all its parts at one height', () => {
+  //
+  // Two things drawn over a part's first row take room of their own, and that part then starts
+  // lower: the frame of a Choose that opens at that row, and lines that arrive over its first
+  // step from two or more steps (each needs a lane). Such a part is held to using the room: its
+  // frame, or its highest line, comes up to where the other parts start.
+  it('starts all its parts at one height, but for a Choose frame or arriving lines over a first row', () => {
     let cut = 0;
+    let lower = 0;
     const uneven: string[] = [];
     for (const { recipe, layout, theme, where } of every(PINNED.filter((s) => s.values['third-column'] === 'never'))) {
       const room = readTheme(theme).num('caption-font-size') + 4;
+      const frames = layout.containers.filter((k) => k.box.id.startsWith('choose:')).map((k) => k.box);
+      const lines = layout.edges.filter((e) => e.kind !== 'ingredients');
       for (const c of layout.containers.filter((c) => c.box.id.startsWith('component:'))) {
         const own = new Set(stepsOf(recipe, c.box.id.slice('component:'.length)));
         const nodes = layout.operations.filter((o) => own.has(o.box.id) && !o.prep).map((o) => o.box);
         const parts = [...new Set(nodes.map((b) => b.x))].map((x) => nodes.filter((b) => b.x === x));
         if (parts.length < 2) continue;
         cut++;
-        const tops = parts.map((p) => {
+        const heads = parts.map((p) => {
           const first = [...p].sort((a, b) => a.y - b.y)[0];
           const boxes = [first, ...layout.boxes.filter((x) => x.id === `ingredients:${first.id}`)];
-          const top = Math.min(...boxes.map((b) => b.y));
+          const row = Math.min(...boxes.map((b) => b.y));
           const left = Math.min(...boxes.map((b) => b.x));
           const right = Math.max(...boxes.map((b) => b.x + b.width));
-          const named = layout.captions.some((k) => !k.edge && k.x >= left - 30 && k.x <= right && k.y > c.box.y && k.y < top);
-          return named ? top - room : top;
+          const named = layout.captions.some((k) => !k.edge && k.x >= left - 30 && k.x <= right && k.y > c.box.y && k.y < row);
+          const top = named ? row - room : row;
+          // What is drawn over the first row: a Choose frame that opens at it, or lines arriving over its step.
+          const frame = frames.find((f) => inside(first, f) && f.y < first.y);
+          const over = lines.filter((e) => e.to === first.id && e.points.some((q) => q.y < first.y - EPS));
+          const drawn = frame ? frame.y : over.length >= 2 ? Math.min(...over.flatMap((e) => e.points.map((q) => q.y))) : null;
+          return { top, drawn };
         });
-        if (tops.some((top) => Math.abs(top - tops[0]) >= EPS)) uneven.push(`${where}: ${c.box.id} parts start at ${tops.join(', ')}`);
+        const plain = heads.filter((h) => h.drawn === null).map((h) => h.top);
+        if (plain.length === 0) continue;
+        if (plain.some((top) => Math.abs(top - plain[0]) >= EPS)) uneven.push(`${where}: ${c.box.id} parts start at ${plain.join(', ')}`);
+        for (const h of heads) {
+          if (h.drawn === null) continue;
+          lower++;
+          if (h.top < plain[0] - EPS) uneven.push(`${where}: ${c.box.id} a part with a frame or lines over it starts above the others, at ${h.top}`);
+          if (h.drawn > plain[0] + room) uneven.push(`${where}: ${c.box.id} a part starts at ${h.top} with nothing drawn above ${h.drawn} (the others start at ${plain[0]})`);
+        }
       }
     }
-    // Pinned, not hidden (see KNOWN and UNEVEN): a part of a component that holds a Choose starts lower
-    // in these few pinned layouts.
-    expect(uneven).toEqual(UNEVEN);
+    expect(uneven).toEqual([]);
+    // Both kinds of part do occur in the recipes that ship.
+    expect(lower).toBeGreaterThan(0);
     // The recipes do cut a container somewhere, so this is not vacuous.
     expect(cut).toBeGreaterThan(0);
   });
