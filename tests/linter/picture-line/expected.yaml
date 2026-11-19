@@ -1,0 +1,5 @@
+# The image under the title points at image/etna.jpg: a picture line's address is image/markdown.jpg or image/markdown.png.
+findings:
+  - rule: picture-line
+    severity: warning
+    at: null

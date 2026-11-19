@@ -11,10 +11,12 @@ import { allSteps, buildGraph, isGroup, isNotesHeading, partKey, productCount, s
 import type { Callout, Component, IngredientLine, Node, OtherBlock, Pos, Prose, Recipe, Step, StepBlock } from '../core/index.ts';
 import { NODE_MAX_LINES, nodeText } from '../dag/text.ts';
 import { classifyLabel, levenshtein, slipDistance } from './callouts.ts';
+import { lintPicture, type PictureFile } from './picture.ts';
 import { SEVERITY, type RuleId, type Severity } from './rules.ts';
 
 export { SEVERITY, type RuleId, type Severity } from './rules.ts';
 export { classifyLabel, levenshtein, KEYWORDS, type LabelClass } from './callouts.ts';
+export type { PictureFile } from './picture.ts';
 
 export interface Finding {
   /** Rule id from rules.yaml. */
@@ -36,6 +38,12 @@ export interface LintOptions {
    * Omitted = external references are not checked.
    */
   resolveExternal?: (target: string) => boolean;
+  /**
+   * The files directly in the recipe's `image/` folder (SPEC §4.3), an empty list when it has
+   * none. Omitted = the folder cannot be seen: the checks of the files, and of whether the
+   * picture line's file is there, are skipped.
+   */
+  pictures?: PictureFile[];
 }
 
 /** Lint one parsed recipe. Findings are sorted by line, then column. */
@@ -44,6 +52,7 @@ export function lintRecipe(recipe: Recipe, options: LintOptions = {}): Finding[]
 
   lintFrontmatter(recipe, out);
   lintTitle(recipe, out);
+  lintPicture(recipe, options.pictures, (rule, where, at, message) => out.add(rule, where, at, message));
 
   // An unknown `form:` is already an error, and the body was read as structured only for want
   // of a better guess. Form-specific rules would then report on a form the author may not

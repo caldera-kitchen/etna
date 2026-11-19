@@ -326,6 +326,18 @@ export interface Title {
   pos: Pos;
 }
 
+/**
+ * The picture line (SPEC §4.3): one Markdown image, alone in its paragraph, the first thing
+ * under the title, whose address is exactly `image/markdown.jpg` or `image/markdown.png`.
+ */
+export interface PictureLine {
+  /** The words in the brackets: what the picture shows. */
+  alt: string;
+  /** The address as written: `image/markdown.jpg` or `image/markdown.png`. */
+  address: string;
+  pos: Pos;
+}
+
 export interface Recipe {
   source: string;
   frontmatter: Frontmatter;
@@ -340,7 +352,9 @@ export interface Recipe {
   h1Count: number;
   /** True when the title is the first thing in the body, as SPEC §4 requires. */
   titleFirst: boolean;
-  /** Blocks between the title and the first H2. */
+  /** The picture line, or null when the recipe has none. It is not in `preamble`. */
+  picture: PictureLine | null;
+  /** Blocks between the title and the first H2, the picture line left out. */
   preamble: StepBlock[];
   /** Structured form: the top-level components and steps. Empty for traditional. */
   nodes: Node[];

@@ -90,3 +90,24 @@ rules:
   - id: stray-asterisk
     severity: warning
     description: A literal asterisk is left as text in a structured step's instruction - an unclosed mark (*medium-low) prints as an asterisk on the card and marks nothing. An escaped asterisk (\*) is an asterisk on purpose and is not reported.
+  - id: picture-line
+    severity: warning
+    description: A picture line that Etna cannot follow - an image alone in the first paragraph under the title whose address is not exactly image/markdown.jpg or image/markdown.png, or a picture line whose file is not in the recipe's image folder.
+  - id: picture-unread
+    severity: warning
+    description: An image anywhere in the body other than the picture line, inline or in its own paragraph. Etna keeps its words and shows no picture.
+  - id: picture-file
+    severity: warning
+    description: A file in the recipe's image folder that Etna cannot use - a name other than etna.jpg, etna.png, markdown.jpg or markdown.png; contents that are neither a JPEG nor a PNG, or that do not match the ending; or one name with both endings. Names that start with a dot and sub-folders are not read.
+  - id: picture-not-square
+    severity: warning
+    description: A picture (image/etna or image/markdown) is not square as shown. Etna shows its middle; a Markdown reader shows it as it is.
+  - id: picture-size
+    severity: warning
+    description: A picture outside the sizes of the format - image/etna under 600 pixels on its shorter side or over 768 KiB, or image/markdown over 100 KiB (a KiB is 1024 bytes).
+  - id: picture-location
+    severity: warning
+    description: A picture carries the place it was taken (an Exif GPS latitude or longitude). Remove it before the file goes into a public repository.
+  - id: picture-not-in-etna
+    severity: info
+    description: A recipe has a picture line but no image/etna.jpg or image/etna.png, so a Markdown reader shows the picture and Etna shows none.

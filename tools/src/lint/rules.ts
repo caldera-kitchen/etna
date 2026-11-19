@@ -16,6 +16,15 @@ export const SEVERITY = {
   'missing-quantity': 'warning',
   'include-as-text': 'warning',
   'notes-misplaced': 'error',
+  'picture-line': 'warning',
+  'picture-unread': 'warning',
+
+  // The picture's files (checked only when the caller passes the files in `image/`).
+  'picture-file': 'warning',
+  'picture-not-square': 'warning',
+  'picture-size': 'warning',
+  'picture-location': 'warning',
+  'picture-not-in-etna': 'info',
 
   // Structured form.
   'no-steps': 'error',

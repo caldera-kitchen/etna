@@ -4,7 +4,7 @@
 // found; deciding what is an error is the linter's job.
 
 import GithubSlugger from 'github-slugger';
-import type { Blockquote, Heading as MdHeading, List, ListItem, Paragraph, PhrasingContent, Root, RootContent } from 'mdast';
+import type { Blockquote, Heading as MdHeading, Image, ImageReference, List, ListItem, Paragraph, PhrasingContent, Root, RootContent } from 'mdast';
 import { fromMarkdown } from 'mdast-util-from-markdown';
 import { frontmatterFromMarkdown } from 'mdast-util-frontmatter';
 import { toString } from 'mdast-util-to-string';
@@ -12,6 +12,7 @@ import { frontmatter } from 'micromark-extension-frontmatter';
 import { parse as parseYaml } from 'yaml';
 
 import { isOptionalRemark, parseAmount, parseIngredientText, splitRemark } from './ingredient.ts';
+import { isPictureAddress } from './picture.ts';
 import { splitQualifier } from './qualifier.ts';
 
 export { nodeName, splitQualifier } from './qualifier.ts';
@@ -30,6 +31,7 @@ import type {
   Note,
   NotesSection,
   OtherBlock,
+  PictureLine,
   Pos,
   Prose,
   Recipe,
@@ -68,6 +70,8 @@ export function parseRecipe(source: string, options: ParseOptions): Recipe {
   let titleFirst = false;
   const preamble: RootContent[] = [];
   const sections: RawSection[] = [];
+  // Where in `preamble` the block right after the title lands, when the title comes before every H2.
+  let afterTitle = -1;
   for (const node of content) {
     if (node.type === 'heading') {
       if (node.depth === 1) {
@@ -77,6 +81,7 @@ export function parseRecipe(source: string, options: ParseOptions): Recipe {
         if (!title) {
           title = { text, plain: node.children.every((c) => c.type === 'text'), pos: pos(node) };
           titleFirst = preamble.length === 0 && sections.length === 0;
+          if (sections.length === 0) afterTitle = preamble.length;
           continue;
         }
         // A second H1 is kept as an ordinary block so nothing is lost; the linter reports it.
@@ -89,6 +94,15 @@ export function parseRecipe(source: string, options: ParseOptions): Recipe {
     else sections[sections.length - 1].blocks.push(node);
   }
 
+  // The picture line is not part of the recipe's text (SPEC §4.3): it leaves the preamble.
+  const pictureNode = afterTitle >= 0 ? preamble[afterTitle] : undefined;
+  const image = pictureNode ? pictureImage(pictureNode) : null;
+  let picture: PictureLine | null = null;
+  if (image && isPictureAddress(image.url)) {
+    picture = { alt: image.alt ?? '', address: image.url, pos: pos(pictureNode!) };
+    preamble.splice(afterTitle, 1);
+  }
+
   const headings = sections.map((s) => s.heading);
   const recipe: Recipe = {
     source,
@@ -99,6 +113,7 @@ export function parseRecipe(source: string, options: ParseOptions): Recipe {
     title,
     h1Count,
     titleFirst,
+    picture,
     preamble: ctx.blocks(preamble),
     nodes: [],
     traditional: null,
@@ -122,6 +137,22 @@ export function parseRecipe(source: string, options: ParseOptions): Recipe {
     } else recipe.nodes = nest(sections, ctx);
   }
   return recipe;
+}
+
+/**
+ * The image of a paragraph that is one image and nothing else (`![A bowl](image/markdown.jpg)`),
+ * an inline image or a reference-style one; null for any other block.
+ */
+export function imageOnly(node: RootContent): Image | ImageReference | null {
+  if (node.type !== 'paragraph' || node.children.length !== 1) return null;
+  const only = node.children[0];
+  return only.type === 'image' || only.type === 'imageReference' ? only : null;
+}
+
+/** The inline image of a picture-line candidate: an image-only paragraph. */
+function pictureImage(node: RootContent): Image | null {
+  const image = imageOnly(node);
+  return image?.type === 'image' ? image : null;
 }
 
 /** True for a heading whose text is `Notes`, case ignored. */

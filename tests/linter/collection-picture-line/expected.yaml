@@ -1,0 +1,6 @@
+# The picture line points at image/markdown.png, but the folder holds image/markdown.jpg.
+findings:
+  - rule: picture-line
+    severity: warning
+    at: null
+    recipe: test-soup

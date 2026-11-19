@@ -1,0 +1,6 @@
+# image/etna.jpg is 64 pixels a side, under 600.
+findings:
+  - rule: picture-size
+    severity: warning
+    at: null
+    recipe: test-soup

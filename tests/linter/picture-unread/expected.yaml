@@ -1,0 +1,9 @@
+# The picture line under the title is read; the image in the step and the reference-style
+# image in the notes are not. Without the recipe's folder, nothing is said about its files.
+findings:
+  - rule: picture-unread
+    severity: warning
+    at: "Simmer"
+  - rule: picture-unread
+    severity: warning
+    at: "Notes"

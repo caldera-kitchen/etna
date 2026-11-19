@@ -1,0 +1,6 @@
+# image/markdown.png is 40 x 30 pixels.
+findings:
+  - rule: picture-not-square
+    severity: warning
+    at: null
+    recipe: test-soup

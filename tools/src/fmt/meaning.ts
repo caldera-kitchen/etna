@@ -73,6 +73,7 @@ export function meaningOf(recipe: Recipe, context: ScaleContext = 'none'): strin
     title: recipe.title ? [recipe.title.text, recipe.title.plain] : null,
     h1Count: recipe.h1Count,
     headings: recipe.headings.map((h) => [h.text, h.depth, h.anchor]),
+    picture: recipe.picture && [recipe.picture.alt, recipe.picture.address],
     preamble: recipe.preamble.map(block),
     nodes: recipe.nodes.map(node),
     notes: recipe.notes && { heading: recipe.notes.heading.text, items: recipe.notes.items.map(note), other: recipe.notes.other.map(otherProse) },

@@ -1,0 +1,6 @@
+# A picture line and image/markdown.jpg, but no image/etna.jpg: Etna shows no picture.
+findings:
+  - rule: picture-not-in-etna
+    severity: info
+    at: null
+    recipe: test-soup

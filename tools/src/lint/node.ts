@@ -1,12 +1,12 @@
 // The linter on disk: one recipe file, one recipe directory, or a whole collection.
 
-import { existsSync, readFileSync } from 'node:fs';
+import { closeSync, existsSync, openSync, readdirSync, readFileSync, readSync, realpathSync, statSync } from 'node:fs';
 import { basename, dirname, join, relative, resolve } from 'node:path';
 
 import { allSteps, isValidSlug, parseRecipe } from '../core/index.ts';
 import type { IngredientLine, Recipe } from '../core/index.ts';
-import { findRecipes, loadUnits, type RecipeFile } from '../node/files.ts';
-import { finding, hasErrors, lintRecipe, type Finding } from './index.ts';
+import { findRecipes, isInside, loadUnits, type RecipeFile } from '../node/files.ts';
+import { finding, hasErrors, lintRecipe, type Finding, type PictureFile } from './index.ts';
 
 export interface FileResult {
   /** Recipe directory name. */
@@ -35,10 +35,62 @@ export function lintPath(path: string): FileResult[] {
     }
 
     const recipe = parseRecipe(readFileSync(entry.file, 'utf8'), { units });
-    findings.push(...lintRecipe(recipe, { resolveExternal: externalResolver(entry) }));
+    // The picture belongs to the recipe directory: a loose Markdown file has none to check.
+    const pictures = isRecipeDir ? pictureFiles(entry.dir) : undefined;
+    findings.push(...lintRecipe(recipe, { resolveExternal: externalResolver(entry), pictures }));
     findings.sort((a, b) => a.line - b.line || a.column - b.column);
     return { slug: entry.slug, file: entry.file, findings };
   });
+}
+
+/** A picture file larger than this (1024 KiB) is read only as far as `PICTURE_HEAD`: its size comes from the file system. */
+const PICTURE_READ_WHOLE = 1024 * 1024;
+/** How much of a large picture file is read (256 KiB): a JPEG's frame header and Exif data, and a PNG's chunks before its image data, come early. */
+const PICTURE_HEAD = 256 * 1024;
+
+/**
+ * The files directly in `<dir>/image/` (SPEC §4.3), an empty list when there is no such folder.
+ * Sub-folders are left out, and so is a link that leads out of the recipe directory.
+ */
+function pictureFiles(dir: string): PictureFile[] {
+  const folder = join(dir, 'image');
+  let names: string[];
+  try {
+    if (!statSync(folder).isDirectory()) return [];
+    names = readdirSync(folder);
+  } catch {
+    return [];
+  }
+  const realDir = realpathSync(dir);
+  const out: PictureFile[] = [];
+  for (const name of names) {
+    const path = join(folder, name);
+    try {
+      const st = statSync(path);
+      if (!st.isFile() || !isInside(path, realDir)) continue;
+      out.push({ name, bytes: readHead(path, st.size > PICTURE_READ_WHOLE ? PICTURE_HEAD : st.size), size: st.size });
+    } catch {
+      // Unreadable: left out, as if it were not there.
+    }
+  }
+  return out;
+}
+
+/** The first `length` bytes of a file. */
+function readHead(path: string, length: number): Uint8Array {
+  const bytes = new Uint8Array(length);
+  const fd = openSync(path, 'r');
+  try {
+    let read = 0;
+    while (read < length) {
+      const n = readSync(fd, bytes, read, length - read, read);
+      if (n === 0) break;
+      read += n;
+    }
+    return bytes.subarray(0, read);
+  } finally {
+    closeSync(fd);
+  }
 }
 
 /**

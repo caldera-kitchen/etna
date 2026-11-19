@@ -43,7 +43,7 @@ Where they disagree, this document wins.
     (`invalid-slug`, §9).
 - Inside the directory:
   - `recipe.md` — the human-authored canonical file. **Source of truth.**
-  - image assets (hero photo, per-step photos) as needed.
+  - `image/` — optional: the recipe's picture, in up to two files (§4.3).
 
 ---
 
@@ -270,6 +270,55 @@ Ladle into bowls.
 - **Printing.** A card prints the notes only when asked (§8).
 
 (ADR 0011.)
+
+### 4.3 Picture
+
+A recipe may have **one picture**. It lives in a folder named `image` beside `recipe.md`, in
+up to two files, each named for the one place that shows it:
+
+| File | Shown by | Suggested size |
+|---|---|---|
+| `image/etna.jpg` | Etna: the app, and a card whose theme has a place for a picture (§8) | 1200 × 1200 pixels, and at least 600 |
+| `image/markdown.jpg` | a Markdown reader such as GitHub, through the picture line below | 320 × 320 pixels; 240 to 480 suits most recipes |
+
+Both files are optional, and neither stands in for the other: Etna never shows
+`markdown.jpg`, and the picture line never names `etna.jpg`. A recipe with neither is
+complete.
+
+- **Kind.** Each file is a JPEG (`.jpg`) or a PNG (`.png`). Prefer JPEG for a photograph:
+  the same photograph as a PNG is several times larger. One name has one file, not both
+  endings.
+- **Shape.** Square. Etna shows a picture that is not square cut to its middle; a Markdown
+  reader shows it as it is.
+- **Size.** A Markdown reader shows `markdown.jpg` at its own size in pixels, never wider
+  than the text, and Markdown has no way to say otherwise: its pixels are its size on the
+  page. `etna.jpg` is printed, so it wants more: 600 pixels a side print sharply up to 2
+  inches, 1200 up to 4. Keep `etna.jpg` under 768 KiB and `markdown.jpg` under 100 KiB (a
+  KiB is 1024 bytes); a tool may decline to load a picture file larger than 1024 KiB.
+- **Camera data.** A phone writes the place a photograph was taken into the file. Remove it
+  before the file goes into a public repository; the linter warns when it finds one (§9).
+
+**The picture line.** A recipe that has `image/markdown.jpg` may show it with one Markdown
+image, alone in its paragraph, as the first thing under the title:
+
+```markdown
+# Potato Soup
+
+![A bowl of potato soup](image/markdown.jpg)
+```
+
+- Its address is `image/markdown.jpg` or `image/markdown.png`, written exactly so, and that
+  file exists. No other address is a picture line: not a web address, not another folder,
+  not `image/etna.jpg`.
+- The words in the brackets are the author's, and say what the picture shows. Etna gives
+  them to a screen reader as the description of `etna.jpg` as well. Without a picture line
+  the description is the recipe's title.
+- The line is not part of the recipe's text. It is not the text between the title and the
+  first section, a card does not print its words, and it is the same line in the
+  traditional form (§4.1).
+
+An image anywhere else in the body is not a picture to Etna: as with any Markdown the format
+gives no meaning to, only its words are kept (§9, `picture-unread`).
 
 ---
 
@@ -596,9 +645,12 @@ not summed. Nothing is written in the recipe for this.
 All three are produced *from* `recipe.md`:
 
 - **Recipe card** (deterministic). A card shows the title, the ingredients and the
-  directions; everything else (notes, yield, source…) is optional. The
+  directions; everything else (notes, yield, source, the picture…) is optional. The
   recipe's Notes section (§4.1, §4.2) is **opt-in** on every card: it prints only when the
-  reader asks for it, and a card printed without it says nothing about it. Callouts inside
+  reader asks for it, and a card printed without it says nothing about it. The recipe's
+  picture (`image/etna.jpg`, §4.3) prints where the theme has a place for one, unless the
+  reader leaves it out; a recipe without a picture, and a theme without a place for one,
+  give the card they gave before pictures. Callouts inside
   steps are part of the method and always print. In the structured form an
   ingredient belongs to the step that uses it, so one entering at two steps appears twice
   where a card prints each step's own ingredients — this is faithful to method. How a card
@@ -662,6 +714,7 @@ All three are produced *from* `recipe.md`:
   heading alone. Nothing is read from the prose, shortened, reordered or dropped, and a box
   has no cap on its lines: a box of more than five is drawn as marked, and linted
   (`chart-box-long`, §9). There is one way to fill a box: the chart has no text modes.
+  A flow chart shows no picture.
 
 ---
 
@@ -726,7 +779,19 @@ that the two list the same ids.
   (`chart-box-long`);
 - *(structured)* an asterisk left as text in a step's instruction: an unclosed mark prints
   as an asterisk and marks nothing. An escaped asterisk (`\*`) is meant and is not reported
-  (§5.3) (`stray-asterisk`).
+  (§5.3) (`stray-asterisk`);
+- a picture line (§4.3) that Etna cannot follow: an image as the first thing under the
+  title whose address is not `image/markdown.jpg` or `image/markdown.png`, or whose file is
+  not there (`picture-line`);
+- an image anywhere else in the body: Etna keeps its words and shows no picture
+  (§4.3) (`picture-unread`);
+- a file in `image/` that Etna cannot use: a name other than `etna` or `markdown` with the
+  ending `.jpg` or `.png`, contents that are neither a JPEG nor a PNG or do not match the
+  ending, or one name with both endings (§4.3) (`picture-file`);
+- a picture that is not square: Etna shows its middle (§4.3) (`picture-not-square`);
+- a picture outside the sizes of §4.3: `etna.jpg` under 600 pixels on its shorter side or
+  over 768 KiB, or `markdown.jpg` over 100 KiB (`picture-size`);
+- a picture that carries the place it was taken (§4.3) (`picture-location`).
 
 **Hints (pass; a hint for review, never a problem):**
 
@@ -734,6 +799,8 @@ that the two list the same ids.
   name in the other but a near miss there (`### Sauce` under Directions, `### Sauces` under
   Ingredients), so the two do not pair (§4.1) (`unpaired-part`). A direction phase with no
   ingredients of its own is normal in this form, so this is a hint, not a problem.
+- a picture line and no `image/etna.jpg`: a Markdown reader shows the picture and Etna
+  shows none (§4.3) (`picture-not-in-etna`).
 
 Be strict on topology (errors), loose on vocabulary (warnings).
 

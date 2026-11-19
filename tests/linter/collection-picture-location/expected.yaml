@@ -1,0 +1,6 @@
+# image/markdown.jpg carries an Exif GPS latitude and longitude (both 0).
+findings:
+  - rule: picture-location
+    severity: warning
+    at: null
+    recipe: test-soup

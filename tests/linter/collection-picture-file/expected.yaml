@@ -1,0 +1,15 @@
+# image/markdown has both endings; image/etna.jpg holds a PNG; image/photo.jpg is not a name
+# Etna uses. A name that starts with a dot and a sub-folder are not read.
+findings:
+  - rule: picture-file
+    severity: warning
+    at: null
+    recipe: test-soup
+  - rule: picture-file
+    severity: warning
+    at: null
+    recipe: test-soup
+  - rule: picture-file
+    severity: warning
+    at: null
+    recipe: test-soup
