@@ -9,7 +9,7 @@
 export const DEFAULT_THEME = 'mise';
 
 export { parseTheme, type Theme } from './theme.ts';
-export { cardPaging, cardType, DEFAULT_TITLE_WEIGHT, renderCard, renderCardParts, renderListCard, type CardOptions, type CardPaging, type ListCardOptions } from './render.ts';
+export { cardPaging, cardType, DEFAULT_TITLE_WEIGHT, hasPicturePlace, renderCard, renderCardParts, renderListCard, type CardOptions, type CardPaging, type ListCardOptions } from './render.ts';
 export { FIT_DEFAULTS, pageSetup, PAPERS, paperError, themePapers, toPoints, type FitLimits, type PageSetup, type PaperName } from './paper.ts';
 export { decideFit, type FitDecision, type FitRule, type Layout } from './fit.ts';
 export { pagingScript } from './script.ts';
@@ -39,6 +39,7 @@ export {
   LAYOUTS,
   DEFAULT_PARTS,
   PARTS,
+  PICTURE_SRC,
   REQUIRED_SLOTS,
   requiredSlots,
   SLOTS,

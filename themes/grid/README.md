@@ -10,7 +10,9 @@ etna card path/to/recipe --theme grid --pdf --out card.pdf
 
 Structured recipes use the `paired` layout. Its section labels are
 *Ingredients*, *Method* and *Notes* (`labels:` in `theme.yaml`). `--grid-label` at the top
-of `card.css` sets the width of the label column.
+of `card.css` sets the width of the label column. The recipe's picture is a third column of the
+heading's row, 1.5 in square (`--grid-picture`), its right edge on the text's; 1.1 in on half
+letter, none on an index card.
 
 How themes work — files, slots, labels, classes, what the renderer already does: see
 [`../README.md`](../README.md).

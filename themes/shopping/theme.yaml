@@ -42,6 +42,7 @@ options:
   slots:
     intro: false
     notes: false          # no place for a recipe's notes, even when asked
+    picture: false         # no picture on a shopping list
     yield: true
     source: false
     version: false

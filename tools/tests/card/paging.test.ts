@@ -562,6 +562,68 @@ describe.skipIf(browser === null)('paging edge cases in a real browser', () => {
     expect(parseFloat(r.size)).toBeGreaterThanOrEqual(8.5);
   }, 180_000);
 
+  it('pages a card with a picture: the square kept whole on the first page, nothing lost', async () => {
+    const png = readFileSync(join(ETNA_ROOT, 'tests', 'linter', 'clean-picture', 'input', 'test-soup', 'image', 'etna.png'));
+    const picture = { src: `data:image/png;base64,${png.toString('base64')}` };
+    const PICTURE = `(() => { const boxes = [...${ALL('.sheet .card-picture')}].map((e) => { const r = e.getBoundingClientRect(); const c = e.closest('.sheet-content').getBoundingClientRect();
+      return { page: Number(e.closest('.sheet').getAttribute('data-page')), width: r.width, height: r.height, inside: r.top >= c.top - 1 && r.bottom <= c.bottom + 1 && r.right <= c.right + 1 }; });
+      return boxes; })()`;
+    const soup = readRecipe(join(ETNA_ROOT, 'cookbook', 'potato-soup', 'recipe.md'));
+    const rolls = readRecipe(join(ETNA_ROOT, 'cookbook', 'next-day-soft-cinnamon-rolls', 'recipe.md'));
+    const wedding = readRecipe(join(ETNA_ROOT, 'cookbook', 'italian-wedding-soup', 'recipe.md'));
+    const cases: [string, ReturnType<typeof readRecipe>, Parameters<typeof renderCard>[2]][] = [
+      ['mise', rolls, {}],
+      ['folio', soup, {}],
+      ['binder', rolls, {}],
+      ['binder', soup, { layout: 'paired' }],
+      ['binder', wedding, { paper: 'half-letter' }],
+      ['countertop', soup, { paper: 'half-letter' }],
+      ['grid', rolls, {}],
+    ];
+    for (const [name, recipe, options] of cases) {
+      const label = `${name} ${JSON.stringify(options)}`;
+      const { paged, flowWords } = await both(recipe, loadTheme(name), { ...options, picture });
+      clean(paged, flowWords, label);
+      const boxes = await page.check<{ page: number; width: number; height: number; inside: boolean }[]>(renderCard(recipe, loadTheme(name), { ...options, picture }), PICTURE);
+      expect(boxes.length, label).toBe(1);
+      expect(boxes[0], label).toMatchObject({ page: 1, inside: true });
+      expect(boxes[0].width, label).toBeGreaterThan(90); // an inch is 96 CSS pixels
+      expect(Math.abs(boxes[0].width - boxes[0].height), label).toBeLessThan(1);
+    }
+  }, 180_000);
+
+  it('pages columns built from a floated side column (Mise beside a picture) as it pages a grid', async () => {
+    const png = readFileSync(join(ETNA_ROOT, 'tests', 'linter', 'clean-picture', 'input', 'test-soup', 'image', 'etna.png'));
+    const picture = { src: `data:image/png;base64,${png.toString('base64')}` };
+    const mise = loadTheme('mise');
+    const rows = (from: number, n: number) => Array.from({ length: n }, (_x, i) => `- ${from + i} g ingredient-${from + i}, chopped`).join('\n');
+    const list = recipeOf(
+      `---\netna: 1\nform: traditional\n---\n\n# Many\n\n## Ingredients\n\n### First part\n\n${rows(1, 70)}\n\n### Second part\n\n${rows(71, 70)}\n\n## Directions\n\n### First part\n\n1. ${longText(300, 'm')}\n\n### Second part\n\n1. ${longText(60, 'n')}\n`,
+    );
+    const steps = recipeOf(`---\netna: 1\n---\n\n# Steps\n\n## Mix\n\n${rows(1, 60)}\n\n${longText(900, 'w')}\n\n## Bake\n\n- 2 g other\n\nBake.\n`);
+    // On the first page: the picture, and both columns begun (a table cell and a line of the method).
+    const FIRST = `(() => { const c = ${ALL('.sheet-content')}[0]; const cr = c.getBoundingClientRect(); const low = (q) => Math.max(0, ...[...c.querySelectorAll(q)].map((e) => e.getBoundingClientRect().bottom - cr.top)) / cr.height;
+      return { picture: c.querySelectorAll('.card-picture').length, list: low('td'), method: low('.direction-text') }; })()`;
+    const cases: [string, ReturnType<typeof recipeOf>, Parameters<typeof renderCard>[2]][] = [
+      ['one list', list, { parts: 'sections' }],
+      ['parts beside their ingredients', list, { parts: 'paired' }],
+      ['steps', steps, {}],
+    ];
+    for (const [label, recipe, options] of cases) {
+      const { paged, flowWords } = await both(recipe, mise, { ...options, picture });
+      clean(paged, flowWords, label);
+      expect(paged.pages, label).toBeGreaterThan(1);
+      const first = await page.check<{ picture: number; list: number; method: number }>(renderCard(recipe, mise, { ...options, picture }), FIRST);
+      expect(first.picture, label).toBe(1);
+      expect(first.list, label).toBeGreaterThan(0.5);
+      expect(first.method, label).toBeGreaterThan(0.5);
+      // The same card without the picture, laid out by the grid, takes as many pages or one fewer.
+      const plain = await page.check<Report>(renderCard(recipe, mise, options), REPORT);
+      expect(paged.pages - plain.pages, label).toBeGreaterThanOrEqual(0);
+      expect(paged.pages - plain.pages, label).toBeLessThanOrEqual(1);
+    }
+  }, 180_000);
+
   it('cannot be stopped by a theme element that shadows a document method', async () => {
     const mise = loadTheme('mise');
     const clobber = '<img name="createElement" src="data:,"><img name="querySelector" src="data:,"><img name="getElementById" src="data:,"><img name="fonts" src="data:,"><img name="documentElement" src="data:,"><form name="dispatchEvent"></form>';

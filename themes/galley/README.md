@@ -8,7 +8,8 @@ a small block — its name, what goes in, what to do.
 etna card path/to/recipe --theme galley --pdf --out card.pdf
 ```
 
-Structured recipes use the `paired` layout.
+Structured recipes use the `paired` layout. It prints no picture: it is made to fit a long
+recipe on one page.
 
 How themes work — files, slots, labels, classes, what the renderer already does: see
 [`../README.md`](../README.md).

@@ -2,7 +2,7 @@
 
 import type { Recipe } from '../core/index.ts';
 import { renderBody, type Display, type Labels } from './body.ts';
-import { CARD_ICON, cardCsp, DEFAULT_LABELS, layoutName, NON_SLOT_LABELS, partsName, SLOT_SWITCHES, type LayoutName, type PartsName } from './contract.ts';
+import { CARD_ICON, cardCsp, DEFAULT_LABELS, layoutName, NON_SLOT_LABELS, partsName, PICTURE_SRC, SLOT_SWITCHES, type LayoutName, type PartsName } from './contract.ts';
 import { columnProperties } from './columns.ts';
 import { CARD_COLOR_ROLES, CORE_CSS } from './core-css.ts';
 import { esc } from './html.ts';
@@ -35,6 +35,15 @@ export interface CardOptions {
    * print; so does a shopping list's footer.
    */
   notes?: boolean;
+  /**
+   * The recipe's picture (`image/etna.jpg`, SPEC §4.3), as the caller read it: `src` is a
+   * `data:image/jpeg;base64,…` or `data:image/png;base64,…` address (pictureDataAddress in
+   * core builds one from the file's bytes); anything else is ignored. It prints where the
+   * theme has a place for it (`options.slots.picture: true` and a `{{picture}}` slot), unless
+   * the caller's `slots.picture` is false. The description a screen reader gives is the
+   * picture line's words, or the recipe's title. A shopping list shows no picture.
+   */
+  picture?: { src: string };
   /** Printed words, over the theme's `labels:` and the English defaults. */
   labels?: Record<string, string>;
   /**
@@ -287,6 +296,9 @@ function resolve(theme: Theme, options: CardOptions): Settings {
   const layout = options.layout === undefined ? theme.layout : layoutName(options.layout, 'card options');
   // A theme object built by hand, without `parts`, gets the default.
   const parts = options.parts === undefined ? (theme.parts ?? 'sections') : partsName(options.parts, 'card options');
+  // The picture prints only when one was given, in a theme that has a place for it; a shopping
+  // list is not the recipe's page and shows none.
+  slots.picture = hasPicture(options) && themeSlots.picture === true && options.slots?.picture !== false && layout !== 'list';
 
   const l = record(theme.manifest.labels);
   const words = wordsOf(theme, options);
@@ -393,6 +405,7 @@ function build(recipe: Recipe, theme: Theme, options: CardOptions): Built {
     // Optional slots.
     intro: on('intro', body.intro),
     notes: on('notes', body.notes),
+    picture: on('picture', pictureFigure(recipe, options)),
     ...commonSlots(settings, theme),
   };
 
@@ -486,6 +499,30 @@ function buildList(list: ShoppingList, theme: Theme, options: ListCardOptions): 
 }
 
 // --------------------------------------------------------------------- helpers
+
+/**
+ * True when cards in this theme show a recipe's picture: `options.slots.picture: true`, a
+ * `{{picture}}` slot, and not a shopping list. A caller need not read a picture otherwise.
+ */
+export function hasPicturePlace(theme: Theme): boolean {
+  return record(record(theme.manifest.options).slots).picture === true && usesSlot(theme.skeleton, 'picture') && theme.layout !== 'list';
+}
+
+/** True when the caller gave a picture the card may show: a JPEG or PNG `data:` address. */
+function hasPicture(options: CardOptions): boolean {
+  return typeof options.picture?.src === 'string' && PICTURE_SRC.test(options.picture.src);
+}
+
+/**
+ * The `picture` slot: the whole figure, the image described by the picture line's words, or by
+ * the recipe's title when it has none (SPEC §4.3). Empty without a picture.
+ */
+function pictureFigure(recipe: Recipe, options: CardOptions): string {
+  if (!hasPicture(options)) return '';
+  const words = recipe.picture?.alt.trim() ?? '';
+  const alt = words !== '' ? words : (recipe.title?.text ?? 'Untitled recipe');
+  return `<figure class="card-picture"><img src="${esc(options.picture!.src)}" alt="${esc(alt)}"></figure>`;
+}
 
 function oneOf<T extends string>(value: unknown, allowed: readonly T[], fallback: T): T {
   return allowed.includes(value as T) ? (value as T) : fallback;

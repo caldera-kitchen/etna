@@ -45,6 +45,7 @@ options:
   slots:
     intro: true           # text between the title and the first section, when a recipe has any
     notes: true           # a place for the notes; printed only when asked (--notes)
+    picture: true          # the recipe's picture (image/etna.jpg): beside the ingredient list
     yield: false
     source: false
     version: false

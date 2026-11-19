@@ -1,5 +1,8 @@
 <article class="card card-{{theme}}">
-  <header class="card-header">
+  <header class="card-header{{#picture}} has-picture{{/picture}}">
+    {{#picture}}
+    {{picture}}
+    {{/picture}}
     <h1 class="card-title">{{title}}</h1>
     {{#meta}}
     <p class="card-meta">{{meta}}</p>

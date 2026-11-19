@@ -12,6 +12,8 @@
   --mise-side: 19.543rem;      /* width of the ingredient column */
   --mise-gap: 2.194rem;       /* space between the two columns */
   --mise-hair: 0.5pt solid var(--card-ink);
+  --mise-picture: 1.5in;      /* width of the recipe's picture */
+  --mise-picture-gap: 1.2rem; /* space between the picture and the text beside it */
 }
 
 /* ------------------------------------------------------------------ the page */
@@ -51,7 +53,51 @@
 .meta-item { margin-right: 1.6em; white-space: nowrap; }
 .meta-label { font-weight: 600; }
 
-.intro { padding-top: 0.952rem; }
+/* --------------------------------------------------------------- the picture */
+
+/* The recipe's picture, at the top right of the card. The heading keeps to its left, in a
+   narrower box with its rule under it; what follows the heading comes up beside the picture and
+   goes around it. The skeleton marks the card (has-picture) and puts the picture first. An index
+   card shows no picture (the last rule of this file), so none of this applies there. */
+.card-picture { float: right; width: var(--mise-picture); margin: 0 0 0.7rem var(--mise-picture-gap); }
+:root:not([data-paper^="index-"]) .has-picture > .card-header { margin-right: calc(var(--mise-picture) + var(--mise-picture-gap)); }
+
+/* Beside the picture the line under the title is a small table: the words in one column, what
+   they introduce in the next, wrapping there. */
+:root:not([data-paper^="index-"]) .has-picture .card-meta {
+  display: grid;
+  grid-template-columns: max-content minmax(0, 1fr);
+  column-gap: 0.8em;
+  row-gap: 0.1em;
+}
+:root:not([data-paper^="index-"]) .has-picture .meta-item { display: contents; white-space: normal; }
+
+/* Text goes around the picture line by line only where it shares the picture's flow, and the
+   inside of a grid does not. So on a card with a picture the side column is set by hand
+   wherever this sheet has two columns: the ingredients floated to the left, the method a block
+   with a left margin, its lines free to go around the picture. Each such container closes
+   under its own floated column (::after), and tells the paging script that its children stand
+   side by side (--card-side-by-side), as it sees for itself in a grid. Three places: a plain
+   recipe's list and method, a part set beside its ingredients, and a step. */
+:root:not([data-paper^="index-"]) .has-picture > .card-main.has-ingredients.has-directions,
+:root:not([data-paper^="index-"]) .has-picture .part-body,
+:root:not([data-paper^="index-"]) .has-picture .step { display: block; --card-side-by-side: yes; }
+:root:not([data-paper^="index-"]) .has-picture > .card-main.has-ingredients.has-directions::after,
+:root:not([data-paper^="index-"]) .has-picture .part-body::after,
+:root:not([data-paper^="index-"]) .has-picture .step::after { content: ""; display: block; clear: left; }
+:root:not([data-paper^="index-"]) .has-picture > .card-main.has-ingredients.has-directions > .ingredients,
+:root:not([data-paper^="index-"]) .has-picture .part-ingredients,
+:root:not([data-paper^="index-"]) .has-picture .step-ingredients { float: left; width: var(--mise-side); }
+:root:not([data-paper^="index-"]) .has-picture > .card-main.has-ingredients.has-directions > .card-method,
+:root:not([data-paper^="index-"]) .has-picture .part-directions,
+:root:not([data-paper^="index-"]) .has-picture .step-head,
+:root:not([data-paper^="index-"]) .has-picture .step-body { margin-left: calc(var(--mise-side) + var(--mise-gap)); }
+/* A step's name comes before its ingredients in the card, and a float starts no higher than
+   what comes before it: the ingredients are raised by the height of the name, one line, to
+   start beside it. (Not on a page the step continues on, where the name is not printed.) */
+:root:not([data-paper^="index-"]) .has-picture .step-title { margin-bottom: 0; }
+:root:not([data-paper^="index-"]) .has-picture .step-head { padding-bottom: 0.095rem; }
+:root:not([data-paper^="index-"]) .has-picture .step-head:not(.card-continued) + .step-ingredients { margin-top: calc(-1.3em - 0.095rem); }
 
 /* --------------------------------------------------- the two columns (plain) */
 
@@ -218,8 +264,27 @@
   .part-ingredients { margin-bottom: 0.6rem; }
   .notes { margin-left: 0; }
   .card-title { font-size: 2.3em; }
+  /* The picture: smaller, and the heading is at least as tall, its rule running under both. A
+     narrow page's list is a full-width table, which cannot go around a picture. */
+  .card { --mise-picture: 1.1in; }
+  :root:not([data-paper^="index-"]) .has-picture > .card-header { margin-right: 0; min-height: var(--mise-picture); }
+  :root:not([data-paper^="index-"]) .has-picture > .card-main.has-ingredients.has-directions,
+  :root:not([data-paper^="index-"]) .has-picture .part-body,
+  :root:not([data-paper^="index-"]) .has-picture .step { --card-side-by-side: no; }
+  :root:not([data-paper^="index-"]) .has-picture > .card-main.has-ingredients.has-directions > .ingredients,
+  :root:not([data-paper^="index-"]) .has-picture .part-ingredients { float: none; width: auto; }
+  :root:not([data-paper^="index-"]) .has-picture .step-head:not(.card-continued) + .step-ingredients,
+  :root:not([data-paper^="index-"]) .has-picture .step-ingredients { float: none; width: auto; margin: 0.2rem 0 0.25rem; }
+  :root:not([data-paper^="index-"]) .has-picture > .card-main.has-ingredients.has-directions > .card-method,
+  :root:not([data-paper^="index-"]) .has-picture .part-directions,
+  :root:not([data-paper^="index-"]) .has-picture .step-head,
+  :root:not([data-paper^="index-"]) .has-picture .step-body { margin-left: 0; }
+  :root:not([data-paper^="index-"]) .has-picture .step-title { margin-bottom: 0.095rem; }
+  :root:not([data-paper^="index-"]) .has-picture .step-head { padding-bottom: 0; }
 }
 /* On an index card the side column stays, narrower. */
 @container card-page (min-width: 5in) and (max-width: 6.6in) {
   .card { --mise-side: 15rem; --mise-gap: 1.4rem; }
 }
+/* An index card has no room for the picture. */
+[data-paper^="index-"] .card-picture { display: none; }

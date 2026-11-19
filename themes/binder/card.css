@@ -14,7 +14,11 @@
   padding: var(--binder-frame-padding);
 }
 
-:root { --binder-frame-padding: 0.3in 1cm 0.2in; }
+:root {
+  --binder-frame-padding: 0.3in 1cm 0.2in;
+  --binder-picture: 1.6in;      /* width of the recipe's picture */
+  --binder-picture-gap: 1.2rem; /* space between the picture and what is beside it */
+}
 
 .card { line-height: 1.4; }
 
@@ -23,6 +27,8 @@
   display: flex;
   flex-direction: column;
 }
+/* Everything but the notes, stacked as the frame stacks it. */
+.card-body { display: flex; flex-direction: column; }
 
 /* A one-page card fills its frame, so the notes sit at the bottom. */
 .sheet-only .sheet-content > .card { display: flex; flex-direction: column; min-height: 100%; }
@@ -42,6 +48,7 @@
 [data-paper="half-letter"],
 [data-paper^="index-"] { --binder-frame-padding: 0.15in 0.25in 0.12in; }
 @container card-page (max-width: 5in) {
+  .card { --binder-picture: 1.1in; }
   .ingredients { padding-left: 0.8rem; }
   .ingr-table .ingr-qty { width: max(2.4rem, var(--ingr-qty-width, 0px)); padding-right: 0.9rem; }
   .ingr-table .ingr-unit { width: var(--ingr-unit-width, 0px); padding-right: 0.9rem; }
@@ -84,6 +91,52 @@
 .ingr-table .ingr-unit { width: max(7.731rem, var(--ingr-unit-width, 0px)); padding-right: 1.288rem; }
 
 .ingr-extra { margin: 0.545rem 0 0; }
+
+/* ------------------------------------------------------------------- picture */
+
+/* The recipe's picture, in a thin frame of ink, at the top right corner of the card, the title
+   to its left and the title's rule stopping short of it. The skeleton puts the picture first in
+   the heading and marks the frame (has-picture). An index card shows no picture, so none of
+   this applies there. */
+.card-picture { box-sizing: border-box; width: var(--binder-picture); border: thin solid var(--card-ink); }
+
+/* On narrow paper the heading is a grid of the title and the picture: nothing after the heading
+   is touched, and the heading is as tall as the picture. (A table beside a floated picture is
+   narrowed as a whole, and on narrow paper the ingredient table would be squeezed.) The
+   title's row is as tall as the title, so the line under it follows at once. */
+:root:not([data-paper^="index-"]) .has-picture .card-header {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  grid-template-rows: auto 1fr;
+  column-gap: var(--binder-picture-gap);
+  align-items: start;
+}
+:root:not([data-paper^="index-"]) .has-picture .card-header > * { grid-column: 1; }
+:root:not([data-paper^="index-"]) .has-picture .card-header > .card-picture { grid-column: 2; grid-row: 1 / span 2; margin-top: 0.545rem; }
+
+/* On a wide page the picture is floated, the title keeps a margin as wide as it, and what
+   follows comes up under the title, beside the picture. Running text goes around the picture.
+   What carries a rule keeps its own box, so that the rule stops short of the picture as the
+   title's does: an ingredient list, and a section's name. A run of steps that opens with a rule
+   starts under the picture. */
+@container card-page not (max-width: 5in) {
+  :root:not([data-paper^="index-"]) .has-picture > .card-body { display: flow-root; }
+  :root:not([data-paper^="index-"]) .has-picture .card-header { display: block; }
+  :root:not([data-paper^="index-"]) .has-picture .card-header > .card-picture { float: right; margin: 0.545rem 0 0.7rem var(--binder-picture-gap); }
+  :root:not([data-paper^="index-"]) .has-picture .card-title,
+  :root:not([data-paper^="index-"]) .has-picture .card-meta { margin-right: calc(var(--binder-picture) + var(--binder-picture-gap)); }
+  :root:not([data-paper^="index-"]) .has-picture .ingredients,
+  :root:not([data-paper^="index-"]) .has-picture .component-title { display: flow-root; }
+  :root:not([data-paper^="index-"]) .has-picture .steps + .steps,
+  :root:not([data-paper^="index-"]) .has-picture .component + .steps { clear: right; }
+  /* The body is no longer a stack of separate boxes, so the space above the first section would
+     merge with the space under the title: it is set as padding instead, to the same sum. */
+  :root:not([data-paper^="index-"]) .has-picture .components { padding-top: 0.409rem; }
+  :root:not([data-paper^="index-"]) .has-picture .components > .component:first-child { margin-top: 0; }
+}
+
+/* An index card has no room for the picture: the card is laid out as without one. */
+[data-paper^="index-"] .card-picture { display: none; }
 
 /* ---------------------------------------------------------------- directions */
 

@@ -1,13 +1,15 @@
 // `etna card <recipe-path...> [--theme name] [--pdf] [--out file | --out-dir dir]`
 
-import { existsSync, mkdirSync, writeFileSync } from 'node:fs';
-import { dirname, join, resolve } from 'node:path';
+import { existsSync, mkdirSync, readFileSync, statSync, writeFileSync } from 'node:fs';
+import { basename, dirname, join, resolve } from 'node:path';
+
+import { pictureDataAddress, readPicture } from '../core/index.ts';
 
 import { findRecipes, loadUnits, readRecipe, type RecipeFile } from '../node/files.ts';
 import { findCollectionRoot, loadDensities } from '../density/node.ts';
 import type { DensityTable } from '../density/index.ts';
 import { loadFontCss } from './fonts.ts';
-import { DEFAULT_THEME, renderCard, type CardOptions } from './index.ts';
+import { DEFAULT_THEME, hasPicturePlace, renderCard, type CardOptions } from './index.ts';
 import { loadTheme } from './node.ts';
 import { PAPERS, pageSetup } from './paper.ts';
 import { findBrowser, openPrinter, type Printer } from './pdf.ts';
@@ -34,6 +36,8 @@ Options:
                        its steps). Default: the theme's own.
   --notes              Print the recipe's Notes section, where the theme has a place for it.
                        Default: notes are left out (step callouts always print).
+  --no-picture         Leave out the recipe's picture (image/etna.jpg or image/etna.png).
+                       Default: the picture prints where the theme has a place for it.
   --fit off            Print at the theme's text size, whatever the pages. Default: auto —
                        the theme's size, made smaller (within the theme's limits) only to
                        save a nearly empty last page or to keep a block from being cut off.
@@ -69,6 +73,7 @@ export async function run(argv: string[]): Promise<number> {
   let size: string | undefined;
   let paging = true;
   let notes = false;
+  let picture = true;
   let parts: 'sections' | 'paired' | undefined;
 
   const fail = (message: string): number => {
@@ -94,6 +99,10 @@ export async function run(argv: string[]): Promise<number> {
     }
     if (arg === '--notes') {
       notes = true;
+      continue;
+    }
+    if (arg === '--no-picture') {
+      picture = false;
       continue;
     }
     if (arg === '--no-paging') {
@@ -200,6 +209,9 @@ export async function run(argv: string[]): Promise<number> {
     return { densities: tables.get(collection) ?? null, units };
   };
 
+  // The picture is read only for a theme that shows one.
+  const pictures = picture && hasPicturePlace(theme);
+
   let failed = 0;
   let printer: Printer | null = null;
   if (browser !== null) {
@@ -214,7 +226,8 @@ export async function run(argv: string[]): Promise<number> {
   for (const recipe of recipes) {
     let html: string;
     try {
-      html = renderCard(readRecipe(recipe.file), theme, { webfonts, paper, fit, size, paging, parts, notes, shopping: shopping(recipe.file) });
+      const shown = pictures ? recipePicture(recipe.file) : undefined;
+      html = renderCard(readRecipe(recipe.file), theme, { webfonts, paper, fit, size, paging, parts, notes, picture: shown, shopping: shopping(recipe.file) });
     } catch (error) {
       failed++;
       console.error(`etna card: ${recipe.file}: ${error instanceof Error ? error.message : String(error)}`);
@@ -253,4 +266,36 @@ export async function run(argv: string[]): Promise<number> {
     await printer?.close();
   }
   return failed > 0 ? 1 : 0;
+}
+
+/** The largest picture file a card loads (SPEC §4.3 lets a tool decline one over 1024 KiB). */
+const PICTURE_LIMIT = 1024 * 1024;
+
+/**
+ * The picture a card of this recipe shows: `image/etna.jpg`, else `image/etna.png`, in the
+ * recipe's folder. None for a loose file outside a recipe folder. A file over 1024 KiB, or one
+ * whose contents are not what its ending says, gives no picture and a note saying why.
+ */
+function recipePicture(file: string): CardOptions['picture'] {
+  if (basename(file) !== 'recipe.md') return undefined;
+  for (const [name, kind] of [['etna.jpg', 'jpeg'], ['etna.png', 'png']] as const) {
+    const path = join(dirname(file), 'image', name);
+    if (!existsSync(path)) continue;
+    const note = (why: string) => {
+      console.error(`etna card: ${file}: image/${name} ${why}: the card has no picture`);
+      return undefined;
+    };
+    try {
+      const stat = statSync(path);
+      if (!stat.isFile()) return note('is not a file');
+      if (stat.size > PICTURE_LIMIT) return note('is larger than 1024 KiB');
+      const bytes = new Uint8Array(readFileSync(path));
+      if (readPicture(bytes)?.kind !== kind) return note(`is not a ${kind === 'jpeg' ? 'JPEG' : 'PNG'}`);
+      const src = pictureDataAddress(bytes);
+      return src === null ? undefined : { src };
+    } catch (error) {
+      return note(`cannot be read (${(error as Error).message})`);
+    }
+  }
+  return undefined;
 }

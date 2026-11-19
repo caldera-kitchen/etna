@@ -13,7 +13,14 @@ Structured recipes use the `paired` layout, and a traditional recipe
 made of parts prints them `paired` too (`options.parts`): each part's name across the sheet,
 its ingredients in the side column beside its steps (`--parts sections` for one list beside
 the whole method). `--mise-side` and `--mise-gap` at the top of `card.css` set the width of
-the ingredient column and the gutter.
+the ingredient column and the gutter. The recipe's picture stands at the top right of the
+card, 1.5 in square (`--mise-picture`). The heading keeps to its left: the title, then the
+yield and the source as a small table (the words in one column, what they introduce wrapping
+in the next), then the heading's rule, which stops short of the picture. What follows comes up
+beside the picture and its lines go around it; for that, on a card with a picture, the side
+column is floated instead of set on a grid (see "Picture" in [`../README.md`](../README.md)).
+On half letter the picture is 1.1 in and the heading's rule runs under both;
+none on an index card.
 
 How themes work — files, slots, labels, classes, what the renderer already does: see
 [`../README.md`](../README.md).

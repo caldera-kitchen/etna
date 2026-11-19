@@ -31,6 +31,7 @@ How themes work — files, slots, labels, classes, what the renderer already doe
 - Other recipes used as ingredients (`1 recipe Homemade Chicken Stock`, or a link to another
   recipe) come last, in their own group headed "Other recipes". They are not expanded.
 - Turn on `options.slots.uses` to print, under each item, the steps that use it.
+- No picture: the list is for the store, not the recipe's page.
 
 ## Good at, bad at
 

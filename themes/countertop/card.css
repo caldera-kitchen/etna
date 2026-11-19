@@ -12,6 +12,7 @@
   --counter-gutter: 3.189rem;   /* the column the step figures stand in */
   --counter-rule: 1.5pt solid var(--card-ink);
   --counter-hair: 0.5pt solid var(--card-ink);
+  --counter-picture: 1.75in;    /* width of the recipe's picture */
 }
 
 /* ------------------------------------------------------------------ the page */
@@ -33,6 +34,11 @@
   margin: 0;
   text-wrap: balance;
 }
+
+/* The recipe's picture, at the top right of the heading: the title and the line under it flow
+   to its left, and the heading's rule runs under all of them. */
+.card-header.has-picture { display: flow-root; }
+.card-picture { float: right; width: var(--counter-picture); margin: 0 0 0 1.4rem; }
 
 .card-meta { margin: 0.429rem 0 0; font-size: 0.86em; }
 .meta-item { margin-right: 1.5em; white-space: nowrap; }
@@ -165,3 +171,10 @@
 .note + .note { margin-top: 0.5em; }
 .note-label { font-weight: bold; }
 .note-label::after { content: ":"; }
+
+/* -------------------------------------------------------------- narrow paper */
+
+/* On half letter the picture is smaller, in proportion to the page. */
+@container card-page (max-width: 5in) {
+  .card { --counter-picture: 1.1in; }
+}

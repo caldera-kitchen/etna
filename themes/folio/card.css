@@ -18,6 +18,7 @@
      so a label set lower case in it is all small capitals. Google's Spectral has no small-cap
      feature, so font-variant-caps would only shrink capitals. */
   --folio-small-caps: "Spectral SC", var(--card-font-body);
+  --folio-picture: 2.25in;      /* width of the recipe's picture */
 }
 
 /* ------------------------------------------------------------------ the page */
@@ -46,6 +47,9 @@
 .card-meta { margin: 0.636rem 0 0; font-style: italic; font-size: 0.95em; }
 .meta-item + .meta-item::before { content: "·"; font-style: normal; margin: 0 0.55em; }
 .meta-label { }
+
+/* The recipe's picture, centered under the title and its line of source, above the rule. */
+.card-picture { width: var(--folio-picture); margin: 1rem auto 0; }
 
 /* A short centered rule closes the display matter. */
 .card-header::after {
@@ -216,3 +220,10 @@
 .note + .note { margin-top: 0.45em; }
 .note-label { font-family: var(--folio-small-caps); text-transform: lowercase; letter-spacing: 0.07em; }
 .note-label::after { content: "."; }
+
+/* -------------------------------------------------------------- narrow paper */
+
+/* On half letter the picture is smaller, in proportion to the page. */
+@container card-page (max-width: 5in) {
+  .card { --folio-picture: 1.6in; }
+}

@@ -1,8 +1,16 @@
-<article class="card card-{{theme}}">
+<article class="card card-{{theme}}{{#picture}} has-picture{{/picture}}">
+  {{#picture}}
+  {{picture}}
+  {{/picture}}
   <header class="card-header">
     <h1 class="card-title">{{title}}</h1>
     {{#meta}}
-    <p class="card-meta">{{meta}}</p>
+    <p class="card-meta">
+      {{#yield}}<span class="meta-item"><span class="meta-label">{{label.yield}}</span> <span class="meta-value">{{yield}}</span></span>{{/yield}}
+      {{#source}}<span class="meta-item"><span class="meta-label">{{label.source}}</span> <span class="meta-value">{{source}}</span></span>{{/source}}
+      {{#version}}<span class="meta-item"><span class="meta-label">{{label.version}}</span> <span class="meta-value">{{version}}</span></span>{{/version}}
+      {{#license}}<span class="meta-item"><span class="meta-label">{{label.license}}</span> <span class="meta-value">{{license}}</span></span>{{/license}}
+    </p>
     {{/meta}}
   </header>
   {{#intro}}

@@ -10,7 +10,12 @@ etna card path/to/recipe --theme binder --pdf --out card.pdf
 
 Spaced paragraphs, no step numbers, no rules between steps, step
 labels run in, bold small caps. Structured recipes use the `hoisted` layout — one
-ingredient table, grouped by component, then the directions.
+ingredient table, grouped by component, then the directions. The recipe's picture stands at
+the top right corner of the frame, 1.6 in square (`--binder-picture`) in a thin frame of its
+own, the title to its left and the title's rule stopping short of it. What follows comes up
+under the title, beside the picture: an ingredient table and a section's name keep to its
+left, their rules stopping short of it, and directions that begin beside it go around it. On
+half letter (1.1 in) the heading is as tall as the picture instead; none on an index card.
 
 How themes work — files, slots, labels, classes, what the renderer already does: see
 [`../README.md`](../README.md).

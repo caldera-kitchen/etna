@@ -1,8 +1,8 @@
 # Card themes
 
 A card theme decides how a recipe looks on paper. The recipe format says *what* a card
-shows — the title, the ingredients, the directions, and optionally the notes, yield and
-source (SPEC §8) — and the theme decides *how it is arranged*. This page is the theme
+shows — the title, the ingredients, the directions, and optionally the notes, yield,
+source and picture (SPEC §8) — and the theme decides *how it is arranged*. This page is the theme
 contract: everything a theme can rely on from the renderer, and everything the renderer
 expects from a theme. It is versioned; this is **theme contract 2**
 (paged cards: [Pages](#pages)).
@@ -28,6 +28,7 @@ to them.
 - [Make your own theme in five steps](#make-your-own-theme-in-five-steps)
 - [theme.yaml](#themeyaml)
 - [Notes](#notes): opt-in on every card
+- [Picture](#picture): the recipe's picture, where a theme has a place for it
 - [card.html: slots](#cardhtml-slots)
 - [Labels](#labels)
 - [Classes](#classes)
@@ -101,6 +102,7 @@ Every key, with the value used when the key is left out.
 | `options.parts` | `sections` | How a traditional recipe's parts are arranged: `sections` (the classic card) or `paired` (each part's ingredients with its steps) — see [Parts](#parts). Any other value is refused. |
 | `options.slots.intro` | `true` | Print the text between the title and the first section. |
 | `options.slots.notes` | `true` | The theme has a place for the recipe's Notes section (either form). The notes print only when the reader asks (`--notes`, `CardOptions.notes`); `false` means never, even when asked. See [Notes](#notes). |
+| `options.slots.picture` | `false` | The theme has a place for the recipe's picture (a `{{picture}}` slot). It prints when the recipe has one, unless the reader leaves it out. See [Picture](#picture). |
 | `options.slots.yield` `source` `version` `license` | `false` | Print that frontmatter value. |
 | `options.slots.uses` | `false` | Layout `list`: under each item, the steps that use it (`list-uses`). |
 | `options.display.units` | `long` | `long` (`grams`, `1 clove`, `2 cloves`) or `symbol` (`g`, `tbsp`). |
@@ -228,6 +230,76 @@ The renderer fills `{{notes}}` only when the reader asks for the notes (`etna ca
 - On a shopping list, `{{notes}}` carries the list's footer (an item with no density; ounces
   of a liquid). That is not a recipe note, and it always prints.
 
+### Picture
+
+A recipe may have a picture, `image/etna.jpg` (or `.png`) in its folder (SPEC §4.3). A card
+prints it **where the theme has a place for one**, unless the reader leaves it out
+(`etna card --no-picture`, `CardOptions.slots.picture: false`). A recipe without a picture,
+and a theme without a place for one, give the card they gave before pictures.
+
+- `options.slots.picture: true` says the theme has a place, and `{{picture}}` in the skeleton
+  is that place. Both are needed: the switch is `false` unless a theme says otherwise, so a
+  theme written before pictures is untouched.
+- The renderer fills `{{picture}}` with the whole element, `<figure class="card-picture"><img
+  src="data:…" alt="…"></figure>`. The image is the file itself as a `data:` URL, which the
+  caller reads (`etna card` reads the recipe folder; `CardOptions.picture`); the description a
+  screen reader gives is the picture line's words, or the recipe's title. The core stylesheet
+  makes it a square that is never split across pages, the image cut to its middle
+  ([What the renderer gives every theme](#what-the-renderer-gives-every-theme)).
+- **Place it without touching a card that has none.** Without a picture `{{picture}}` is
+  empty, so a `{{#picture}}…{{/picture}}` block disappears whole, and the card is the one the
+  theme printed before. Style the figure through `.card-picture`, and anything around it
+  through a class that only a card with a picture carries: `<article class="card{{#picture}}
+  has-picture{{/picture}}">`, then `.has-picture > .card-header { … }`. A rule that changes
+  the layout of every card is a rule for the cards without a picture too.
+- Set its width (the core's is 1.5 in), smaller on narrow paper by the means of
+  [Adapting to narrow paper](#papers): `@container card-page (max-width: 5in) { .card {
+  --mise-picture: 1.1in; } }`. An index card has little room for one; the bundled themes hide
+  it there (`[data-paper^="index-"] .card-picture { display: none; }`).
+- A theme that should not show one (Galley, made to fit a long recipe on one page) says
+  `picture: false` and has no slot. A shopping list never shows one.
+
+| Theme | Where | Width |
+|-------|-------|-------|
+| `mise` | Top right of the card. The heading keeps to its left, its rule stopping short of the picture, and what follows comes up beside the picture and goes around it. On half letter the heading's rule runs under both | 1.5 in; 1.1 in on half letter; none on index cards |
+| `folio` | Centered under the title and its line of source, above the short rule that closes the heading | 2.25 in; 1.6 in on half letter |
+| `binder` | Top right corner of the frame, in a thin frame of ink, the title to its left and the title's rule stopping short of it. What follows comes up under the title, beside the picture; on half letter the heading is as tall as the picture | 1.6 in; 1.1 in on half letter; none on index cards |
+| `countertop` | Top right of the heading | 1.75 in; 1.1 in on half letter |
+| `grid` | A third column of the heading's row, its right edge on the text's | 1.5 in; 1.1 in on half letter; none on index cards |
+| `galley`, `shopping` | None | — |
+
+Two ways to keep a heading beside a picture, and what each costs:
+
+- **A grid of the heading and the picture**: the title and its line in one column, the picture
+  in the next, across both rows. Nothing after the heading is touched, and the heading is as
+  tall as the picture, which leaves a band of white under a short heading. Binder does this on
+  narrow paper.
+- **A picture floated beside the heading**: the heading (or its title) takes a right margin as
+  wide as the picture, and what follows comes up beside the picture when the heading is the
+  shorter. Mise does this, and Binder on a wide page.
+
+What comes up beside a floated picture meets it in one of two ways. Running text that shares
+the picture's flow goes around it line by line. A grid, a flex box, a table and anything else
+that keeps its own flow (`display: flow-root`) does not: it is narrowed as a whole for as long
+as it is beside the picture, when it fits there, and starts under it when it does not.
+
+- Binder's ingredient list is a table: it is narrowed as a whole, and given its own flow so
+  that its rule stops short of the picture too, as is a section's name, for the rule over it.
+  The directions are running text and go around what is left of the picture. A run of steps
+  that opens with a rule starts under the picture (`clear: right`). On narrow paper the table
+  would be squeezed, so there the heading stays a grid.
+- Mise's two columns are grids, and the method in them would be narrowed step by step. So on
+  a card with a picture Mise sets the side column by hand instead: the ingredients floated to
+  the left, the method a block with a left margin, its lines free to go around the picture.
+  Each such container closes under its own floated column (`::after { clear: left; }`) and
+  tells the paging script that its children stand side by side, which the script sees for
+  itself only in a grid or a flex row: `--card-side-by-side: yes` ([Pages](#pages)). A step's
+  name comes before its ingredients in the markup, and a float starts no higher than what
+  comes before it, so the ingredients are raised by the height of the name, one line; under a
+  name long enough to take two lines they start beside the second.
+- On narrow paper, where Mise's list is a full-width table under each step's name, the heading
+  is made as tall as the picture (`min-height`), so that nothing meets it.
+
 ## card.html: slots
 
 `card.html` is a fragment: the card element and what is inside it, nothing around it. The
@@ -249,6 +321,7 @@ Two constructs, nothing else — no loops, no logic:
 | `components` | Every step when the layout is `paired`, or the titled component sections of a hoisted structured recipe with a `Choose`. | always |
 | `intro` | Text between the title and the first section. | `slots.intro` |
 | `notes` | The recipe's Notes section (SPEC §4.1, §4.2), in either form. On a shopping list: the list's footer. | when asked (`CardOptions.notes`) and `slots.notes`; a list's footer always |
+| `picture` | The recipe's picture, the whole element: `<figure class="card-picture"><img src="data:…" alt="…"></figure>` ([Picture](#picture)). | when the recipe has one, `slots.picture` is true and the reader has not left it out; never on a shopping list |
 | `yield` `source` `version` `license` | The frontmatter value, escaped. | `slots.<name>` |
 | `meta` | When any of the four above is shown: a ready-made line of `meta-item`s. Use `{{#meta}}` to wrap your own, or `{{meta}}` for the line. | — |
 | `theme` | The theme name (lower case, hyphenated), for class names. | — |
@@ -382,6 +455,12 @@ A list for several recipes (`renderListCard`, the GUI's Shopping list) uses the 
 its title is "Shopping list", the header names the recipes it is for, and `list-uses` names
 the recipe as well as the step.
 
+**Picture**
+
+| Class | Element |
+|-------|---------|
+| `card-picture` | The recipe's picture (`<figure>`), in the `{{picture}}` slot; its one child is the `<img>`. See [Picture](#picture). |
+
 **Notes and other prose**
 
 | Class | Element |
@@ -391,7 +470,7 @@ the recipe as well as the step.
 | `md-list` `md-quote` `md-code` `md-rule` | A list, quote, code block or rule written in Markdown inside prose. |
 
 **Page furniture** — classes the bundled skeletons use, yours to rename in your own:
-`card`, `card-<theme>`, `card-header`, `card-title`, `card-meta`,
+`card`, `card-<theme>`, `card-header`, `card-title`, `card-meta`, `has-picture`,
 `meta-item`, `meta-label` (these two are also written by `{{meta}}`), `intro`,
 `ingredients`, `directions`, `components`, `notes`. The renderer's own page gives the
 `<body>` the class `card-page`.
@@ -504,6 +583,10 @@ override any of it with a rule of the same selector. It holds mechanics, not loo
   kept on one page; a component title, a part title, a choose label, a branch label and a
   section title stay with what follows. A paired part's ingredients are kept row by row, not
   as a group, so they can run on beside the part's steps.
+- **The picture.** `card-picture` is a square, 1.5 in wide until the theme sets a width,
+  with no margin; it is kept on one page, and the image fills it, cut to its middle
+  (`object-fit: cover`). Its size never waits for the image, so the paging script measures
+  the box the card will print.
 - **Numbers.** The number of a `direction-alone` step is hidden.
 - **Paired steps.** `step-number` is hidden, and the body of a `step-echo` step (its text
   only repeats its heading) is hidden.
@@ -558,7 +641,11 @@ A container split across pages carries `card-split` on the page it leaves and `c
 (without its `id`) on the page it continues on. Containers whose children stand side by side
 — a grid with two or more columns, a flex row — fill each column on its own, and a column
 that is finished leaves an empty copy of itself on later pages so the others keep their
-place. A multi-column container (`columns: 2`) is given the height left on its page, so its
+place. A block that sets its children side by side another way (a column floated beside the
+rest) says so, since the script cannot tell: `--card-side-by-side: yes` on that container. The
+property is not inherited, so it marks only the container it is set on; such a container must
+also close under its floated column (a clearing `::after`), so that its box is as tall as its
+tallest column. A multi-column container (`columns: 2`) is given the height left on its page, so its
 columns fill one after the other; on the last page it is balanced. Only something that cannot
 be split at all and is taller than a whole page (an image, say) is printed cut off
 (`data-overflow` on the root; `etna card --pdf` says so). If the script fails for any reason,
@@ -756,7 +843,9 @@ theme, naming the file and the reason, when
   any of the stylesheet rules below (`url(…)` other than `data:`, `image-set()`, `@import`…);
   a `javascript:` or `vbscript:` URL (all of these also when written with character
   references); or the page shell (`<!doctype>`, `<html>`, `<head>`, `<body>`, `<title>`).
-  `data-…` attributes and plain inline styles are fine.
+  `data-…` attributes and plain inline styles are fine. The recipe's picture is the one image
+  a card shows, and it comes from the renderer, in the `{{picture}}` slot, never from the
+  theme: a theme's files may not hold an `<img>` for it or anything else.
 - **a stylesheet** contains `@import`, `expression(`, a `behavior:` or `-moz-binding:`
   property, `image-set()` or `src()`, or a `url(…)` that is not a `data:` URL (also when
   written with CSS escapes). **Comments are checked like the rest**: telling a comment from

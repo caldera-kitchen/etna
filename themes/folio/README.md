@@ -12,7 +12,9 @@ etna card path/to/recipe --theme folio --pdf --out card.pdf
 Structured recipes use the `paired` layout, and a traditional recipe
 made of parts prints them `paired` too (`options.parts`): each part a section under its
 centered italic name, its ingredients then its numbered steps, as a component prints
-(`--parts sections` for the classic list-then-method page).
+(`--parts sections` for the classic list-then-method page). The recipe's picture is centered
+under the title and its line of source, 2.25 in square (`--folio-picture`), above the short
+rule that closes the heading; 1.6 in on half letter.
 
 How themes work — files, slots, labels, classes, what the renderer already does: see
 [`../README.md`](../README.md).

@@ -13,6 +13,7 @@
   --grid-gap: 1.371rem;          /* gutter between label column and axis */
   --grid-heavy: 2.5pt solid var(--card-ink);
   --grid-hair: 0.5pt solid var(--card-ink);
+  --grid-picture: 1.5in;        /* width of the recipe's picture */
   --card-paragraph-gap: 0.45em; /* between paragraphs of one step */
 }
 
@@ -76,6 +77,10 @@
   margin: -0.06em 0 0;
   text-wrap: balance;
 }
+
+/* The recipe's picture: a third column of the heading's row, its right edge on the text's. */
+.card-header.has-picture { grid-template-columns: var(--grid-label) minmax(0, 1fr) var(--grid-picture); }
+.card-picture { width: var(--grid-picture); }
 
 /* Yield, source, version: stacked in the label column beside the title. */
 .card-meta { margin: 0; font-size: 1em; font-weight: normal; line-height: 1.35; padding-top: 0.19rem; }
@@ -212,3 +217,10 @@
   .card { --grid-label: 6.2rem; --grid-gap: 0.9rem; }
   .card-title { font-size: 2.2em; }
 }
+/* On half letter the picture is smaller, in proportion to the page. */
+@container card-page (max-width: 5in) {
+  .card { --grid-picture: 1.1in; }
+}
+/* An index card has no room for the picture: the heading keeps its two columns. */
+[data-paper^="index-"] .card-header.has-picture { grid-template-columns: var(--grid-label) minmax(0, 1fr); }
+[data-paper^="index-"] .card-picture { display: none; }

@@ -1,11 +1,14 @@
 <article class="card card-{{theme}}">
-  <header class="card-header card-row">
+  <header class="card-header card-row{{#picture}} has-picture{{/picture}}">
     <div class="card-label">
       {{#meta}}
       <p class="card-meta">{{meta}}</p>
       {{/meta}}
     </div>
     <h1 class="card-title">{{title}}</h1>
+    {{#picture}}
+    {{picture}}
+    {{/picture}}
   </header>
   {{#intro}}
   <section class="card-row">

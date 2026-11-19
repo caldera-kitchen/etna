@@ -92,6 +92,18 @@ export const CORE_CSS = `/* ---- etna card core (renderer-owned; a theme's style
 
 .intro p { margin: 0 0 0.5em; }
 
+/* The recipe's picture, where a theme's skeleton places it: a square, never split across
+   pages, the image filling it and cut to its middle. Its size is set here, not by the image, so
+   the paging script measures the same box whether or not the image has loaded. A theme sets
+   the width. */
+.card-picture { width: 1.5in; margin: 0; aspect-ratio: 1; overflow: hidden; break-inside: avoid; }
+.card-picture img { display: block; width: 100%; height: 100%; object-fit: cover; }
+
+/* A theme's word to the paging script: this container's children stand side by side, though it
+   is neither a grid nor a flex row (a column floated beside the rest). Not inherited: it marks
+   the one container it is set on. See "Pages" in themes/README.md. */
+@property --card-side-by-side { syntax: "yes | no"; inherits: false; initial-value: no; }
+
 /* Ingredients: quantity, unit and item in three columns that line up. */
 .ingr-table { border-collapse: collapse; }
 .ingr-table th,

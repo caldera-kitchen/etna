@@ -29,7 +29,8 @@
 // - a heading (h1–h6, a header, a group label, anything with `break-after: avoid`) is never left
 //   last on a page: it goes to the next page with what follows it, across containers too.
 // Each new page re-creates the containers that were open (`card-continued`). Side-by-side
-// containers (a grid with two or more columns, a flex row) fill each column independently. A
+// containers (a grid with two or more columns, a flex row, a block that says its children are
+// set side by side: `--card-side-by-side: yes`) fill each column independently. A
 // multi-column container is given the height left on its page so its columns fill top to bottom.
 
 import type { FitDecision, FitRule, Layout } from './fit.ts';
@@ -197,7 +198,10 @@ export function pagingProgram(decideFit: DecideFit): void {
         const tracks = cs.gridTemplateColumns.replace(/\[[^\]]*\]/g, ' ').replace(/\([^()]*(\([^()]*\)[^()]*)*\)/g, '').trim();
         return tracks !== 'none' && tracks.split(/\s+/).length >= 2;
       }
-      return (cs.display === 'flex' || cs.display === 'inline-flex') && cs.flexDirection.startsWith('row') && cs.flexWrap === 'nowrap';
+      if ((cs.display === 'flex' || cs.display === 'inline-flex') && cs.flexDirection.startsWith('row') && cs.flexWrap === 'nowrap') return true;
+      // Columns made another way (one floated beside the others): only the theme knows, and says
+      // so. The core registers the property as not inherited, so it marks that one container.
+      return cs.getPropertyValue('--card-side-by-side').trim() === 'yes';
     };
     // A container of blocks, to be split between its children.
     const container = (el: Element): boolean => {

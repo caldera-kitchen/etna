@@ -9,7 +9,8 @@ etna card path/to/recipe --theme countertop --pdf --out card.pdf
 ```
 
 Structured recipes use the `paired` layout. `font-size` is the whole
-point of the theme; lower it to trade distance for paper.
+point of the theme; lower it to trade distance for paper. The recipe's picture stands at the
+top right of the heading, 1.75 in square (`--counter-picture`); 1.1 in on half letter.
 
 How themes work — files, slots, labels, classes, what the renderer already does: see
 [`../README.md`](../README.md).

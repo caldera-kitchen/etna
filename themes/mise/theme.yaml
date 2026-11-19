@@ -45,6 +45,7 @@ options:
   slots:
     intro: true
     notes: true           # a place for the notes; printed only when asked (--notes)
+    picture: true          # the recipe's picture (image/etna.jpg): top right of the heading
     yield: true
     source: true
     version: false

@@ -35,6 +35,38 @@ export function readPicture(bytes: Uint8Array): PictureInfo | null {
   }
 }
 
+/** The media type of each kind, as a `data:` address names it. */
+const MEDIA_TYPES: Readonly<Record<PictureKind, string>> = { jpeg: 'image/jpeg', png: 'image/png' };
+
+/**
+ * The picture as a `data:image/jpeg;base64,…` or `data:image/png;base64,…` address, the kind
+ * read from its bytes (readPicture). Null for bytes that are neither a JPEG nor a PNG.
+ */
+export function pictureDataAddress(bytes: Uint8Array): string | null {
+  const info = readPicture(bytes);
+  return info === null ? null : `data:${MEDIA_TYPES[info.kind]};base64,${base64(bytes)}`;
+}
+
+const BASE64 = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/';
+
+/** Standard base64 with padding, written here because Node's Buffer is not in a browser. */
+function base64(b: Uint8Array): string {
+  const out: string[] = [];
+  let i = 0;
+  for (; i + 2 < b.length; i += 3) {
+    const n = (b[i] << 16) | (b[i + 1] << 8) | b[i + 2];
+    out.push(BASE64[n >> 18] + BASE64[(n >> 12) & 63] + BASE64[(n >> 6) & 63] + BASE64[n & 63]);
+  }
+  if (i + 1 === b.length) {
+    const n = b[i] << 16;
+    out.push(`${BASE64[n >> 18]}${BASE64[(n >> 12) & 63]}==`);
+  } else if (i + 2 === b.length) {
+    const n = (b[i] << 16) | (b[i + 1] << 8);
+    out.push(`${BASE64[n >> 18]}${BASE64[(n >> 12) & 63]}${BASE64[(n >> 6) & 63]}=`);
+  }
+  return out.join('');
+}
+
 // ---------------------------------------------------------------------- bytes
 
 function u16(b: Uint8Array, at: number, little: boolean): number {

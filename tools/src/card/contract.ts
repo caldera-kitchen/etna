@@ -84,6 +84,7 @@ export const SLOTS = [
   'components',
   'intro',
   'notes',
+  'picture',
   'yield',
   'source',
   'version',
@@ -104,6 +105,8 @@ export function requiredSlots(layout: LayoutName): readonly string[] {
 export const SLOT_SWITCHES: Readonly<Record<string, boolean>> = {
   intro: true,
   notes: true,
+  /** The theme has a place for the recipe's picture: off unless a theme says so. */
+  picture: false,
   yield: false,
   source: false,
   version: false,
@@ -230,6 +233,12 @@ export const CARD_CSP = "default-src 'none'; style-src 'unsafe-inline'; font-src
  * (img-src data:) refuses and Firefox reports as an error. It loads nothing.
  */
 export const CARD_ICON = '<link rel="icon" href="data:,">';
+
+/**
+ * A picture address the renderer writes into a card: a JPEG or PNG as base64 in a `data:` URL,
+ * which the policy admits (img-src data:). Nothing else is a card's picture.
+ */
+export const PICTURE_SRC = /^data:image\/(?:jpeg|png);base64,[A-Za-z0-9+/]+={0,2}$/;
 
 /** The same for a card whose fonts come from Google Fonts (`webfonts.mode: web`): those two hosts, nothing else. */
 export const CARD_CSP_WEB =
