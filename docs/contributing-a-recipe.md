@@ -253,6 +253,80 @@ that CI builds on `main`, it offers full search.
 their changes. Nothing in Etna ties a recipe to one collection: a recipe folder moved between
 collections keeps working, because the recipe is the Markdown file and nothing else.
 
+## A picture, if you have one
+
+A recipe may have one picture, added at any stage: a photograph **you took** of the dish. Not
+one saved from a web page or copied from a book, even with credit; that photograph belongs to
+whoever took it. The rules are in SPEC §4.3.
+
+The picture lives in a folder named `image` beside `recipe.md`, as up to two copies of the
+same photograph, each made for the one place that shows it:
+
+| File | Shown by | Size |
+|---|---|---|
+| `image/etna.jpg` | the viewer, and a card whose style has a place for a picture | 1200 × 1200 pixels, under 768 KiB |
+| `image/markdown.jpg` | GitHub and other Markdown readers, through the picture line | 320 × 320 pixels, under 100 KiB |
+
+Either copy may come alone; neither stands in for the other.
+
+**1. Take out the location.** A phone writes the place a photograph was taken into the file,
+and every copy made from it keeps it. Remove it from the photograph you start from:
+
+- On an iPhone, in Photos: Share, then Options at the top, turn off Location, and save or
+  send the copy.
+- On a Mac, in Photos: File > Export, with Location Information left unchecked.
+
+**2. Make the two copies.** Cut the photograph to a square, then save it at each size. On a
+Mac, Terminal's `sips` does both, from a JPEG or an iPhone's HEIC alike. Find the shorter side:
+
+```bash
+sips -g pixelWidth -g pixelHeight photo.jpg
+```
+
+Cut the middle square, here for a photograph 3024 pixels on its shorter side:
+
+```bash
+sips -c 3024 3024 -s format png photo.jpg --out square.png
+```
+
+Then make the folder and the two copies:
+
+```bash
+mkdir recipes/potato-soup/image
+```
+
+```bash
+sips -Z 1200 -s format jpeg -s formatOptions 80 square.png --out recipes/potato-soup/image/etna.jpg
+```
+
+```bash
+sips -Z 320 -s format jpeg -s formatOptions 80 square.png --out recipes/potato-soup/image/markdown.jpg
+```
+
+Any photo editor does the same: crop to a square, and export a JPEG at each size with quality
+about 80. A busy photograph may come out over 768 KiB at 1200 pixels; export it again at
+quality 70.
+
+**3. Write the picture line.** With `markdown.jpg`, put one image line as the first thing under
+the title, in your own words for what the picture shows:
+
+```markdown
+# Potato Soup
+
+![A bowl of potato soup](image/markdown.jpg)
+```
+
+GitHub shows the picture there. A screen reader reads the words for both copies, and a card
+never prints them. A recipe kept in the traditional form takes the same line.
+
+**4. Check it.** `etna lint` reports a file it cannot use, a picture that is not square or is
+outside the sizes above, a location still in the file, and a picture line that names the
+wrong address or a missing file. `etna serve .` then shows the picture on the card, where a
+Picture switch leaves it out of the print, and its Check tab runs the same checks.
+
+An AI assistant can run these commands for you. The photograph is yours to hand it; it never
+finds one for you.
+
 ## Licenses
 
 Say in the collection's README how the recipes may be used, or give a recipe its own
