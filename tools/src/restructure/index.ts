@@ -21,7 +21,8 @@ import { addRanges, equals, rangeOf, toQuantity, type RationalRange } from '../l
 /**
  * - `lost`: something of the original was dropped, altered or added to. Fails the check.
  * - `review`: an accepted change the person converting should read (a stated split, an ingredient listed
- *   at two steps without an amount, a step name turned heading). Does not fail.
+ *   at two steps without an amount, or in full in each branch of a `Choose`, a step name turned
+ *   heading). Does not fail.
  * - `new`: words or structure the structured form needs and the original cannot have: step
  *   and component headings, link bullets, callout keywords. Listed, not failed.
  */
@@ -38,6 +39,7 @@ export type FindingKind =
   | 'ingredient-added'
   | 'ingredient-changed'
   | 'ingredient-duplicated'
+  | 'ingredient-each-branch'
   | 'split-sum'
   | 'split-note'
   | 'ingredient-split'
@@ -145,6 +147,8 @@ interface Line {
   lineNo: number;
   /** Structured only: the index of the step it is listed under. */
   step: number;
+  /** Structured only: the `Choose` components it is inside, outermost first, and which branch of each. */
+  branches: { choose: Node; branch: number }[];
   /** Original only: the index of the ingredient part (`###`) it is listed in. */
   group: number;
   link: boolean;
@@ -155,7 +159,7 @@ function qtyKey(q: RationalRange | null): string {
   return `${q.min.num}/${q.min.den}..${q.max.num}/${q.max.den}`;
 }
 
-function toLine(l: IngredientLine, step: number, group = -1): Line {
+function toLine(l: IngredientLine, step: number, group = -1, branches: Line['branches'] = []): Line {
   const item = ws(l.kind === 'ingredient' ? l.item : l.label);
   // A remark after ` — ` is checked with the note: a portion must keep it as written.
   const written = [l.note, l.remark === null ? null : `— ${l.remark}`].filter((x) => x !== null && ws(x) !== '').join(' ');
@@ -176,9 +180,29 @@ function toLine(l: IngredientLine, step: number, group = -1): Line {
     key: `${qtyKey(qty)}|${unit ?? '-'}|${keyItem}|${note ?? '-'}`,
     lineNo: l.pos.start.line,
     step,
+    branches,
     group,
     link,
   };
+}
+
+/**
+ * True when two structured lines are in different branches of one `Choose`: they are
+ * alternatives, never two parts of one amount (SPEC §5.2).
+ */
+function apart(a: Line, b: Line): boolean {
+  return a.branches.some((x) => b.branches.some((y) => y.choose === x.choose && y.branch !== x.branch));
+}
+
+/** The `Choose` components a step is inside, outermost first, and which branch of each: `inside` is the components around it, outermost first. */
+function branchesOf(step: Step, inside: Node[]): Line['branches'] {
+  const out: Line['branches'] = [];
+  inside.forEach((c, k) => {
+    if (c.kind !== 'component' || !c.choose) return;
+    const child = inside[k + 1] ?? step;
+    out.push({ choose: c, branch: c.children.indexOf(child) });
+  });
+  return out;
 }
 
 function caseKey(l: Line): string {
@@ -199,7 +223,7 @@ function sameQty(a: RationalRange | null, b: RationalRange | null): boolean {
   return equals(a.min, b.min) && equals(a.max, b.max);
 }
 
-/** Subsets of `pool` (indices), at least two members, whose quantities sum to `target`. */
+/** Subsets of `pool` (indices), at least two members, none in different branches of one Choose, whose quantities sum to `target`. */
 function findSplit(target: RationalRange, pool: Line[]): number[] | null {
   const n = Math.min(pool.length, 14);
   let best: number[] | null = null;
@@ -209,7 +233,7 @@ function findSplit(target: RationalRange, pool: Line[]): number[] | null {
     if (picked.length < 2) continue;
     let sum: RationalRange | null = null;
     for (const i of picked) sum = sum ? addRanges(sum, pool[i].qty!) : pool[i].qty!;
-    if (sum && sameQty(sum, target)) {
+    if (sum && sameQty(sum, target) && !picked.some((i) => picked.some((j) => apart(pool[i], pool[j])))) {
       // Prefer the split that uses the most lines: every portion of a divided ingredient.
       if (!best || picked.length > best.length) best = picked;
     }
@@ -283,9 +307,10 @@ function checkIngredients(original: Recipe, structured: Recipe, findings: Findin
   /** Links to a component of this recipe that carry an amount: they may stand for a line of the original. */
   const amountLinks: { line: Line; step: Step }[] = [];
   steps.forEach((step, i) => {
+    const branches = branchesOf(step, inside[i]);
     for (const l of step.ingredients) {
       if (l.kind === 'reference' && l.internal && l.quantity) {
-        amountLinks.push({ line: toLine(l, i), step });
+        amountLinks.push({ line: toLine(l, i, -1, branches), step });
         continue;
       }
       if (l.kind === 'reference' && l.internal) {
@@ -298,7 +323,7 @@ function checkIngredients(original: Recipe, structured: Recipe, findings: Findin
         });
         continue;
       }
-      S.push(toLine(l, i));
+      S.push(toLine(l, i, -1, branches));
     }
   });
   // Ingredient lines outside any step (in the preamble) are still lines of the recipe.
@@ -363,8 +388,33 @@ function checkIngredients(original: Recipe, structured: Recipe, findings: Findin
     }
   }
 
+  // A2. A line every branch of a `Choose` takes, listed in full in each (SPEC §5.2): the
+  // copies in other branches of the same Choose are alternatives, not more of it. A copy in
+  // the same branch as another, or outside any Choose they share, is left for the duplicate
+  // finding below.
+  for (const o of O) {
+    const kept = matchedBy.get(o);
+    if (!kept || kept.length !== 1) continue;
+    const copies = [kept[0]];
+    for (const x of S) if (exact(o)(x) && copies.every((c) => apart(c, x))) copies.push(x);
+    if (copies.length < 2) continue;
+    account(o, copies.slice(1));
+    // The Choose to name: one every copy is in, each in a branch of its own.
+    const choose = kept[0].branches
+      .map((b) => b.choose)
+      .find((c) => copies.every((x) => x.branches.some((y) => y.choose === c)) && new Set(copies.map((x) => x.branches.find((y) => y.choose === c)!.branch)).size === copies.length);
+    findings.push({
+      severity: 'review',
+      kind: 'ingredient-each-branch',
+      message: `${show(o)} is listed in full in ${countWord(copies.length)} branches of ${choose ? `the Choose "${choose.heading.text}"` : 'a Choose'}, once in each`,
+      original: [o.lineNo],
+      structured: copies.map((x) => x.lineNo).sort((a, b) => a - b),
+    });
+  }
+
   // B. Stated splits: lines with the same item and unit whose amounts sum exactly to an
-  // original line's amount.
+  // original line's amount. Portions are never taken from two branches of one Choose: those
+  // are alternatives, never added together.
   for (const o of O) {
     if (oUsed.has(o) || o.qty === null) continue;
     const pool = S.filter((x) => !sUsed.has(x) && !x.link && x.qty !== null && x.item === o.item && x.unit === o.unit);
@@ -372,6 +422,8 @@ function checkIngredients(original: Recipe, structured: Recipe, findings: Findin
     const picked = findSplit(o.qty, pool);
     const parts = picked ? picked.map((i) => pool[i]) : pool;
     if (!picked) {
+      // Lines in different branches have no sum to report: left as changed or added, below.
+      if (pool.some((p) => pool.some((q) => apart(p, q)))) continue;
       let sum: RationalRange | null = null;
       for (const p of pool) sum = sum ? addRanges(sum, p.qty!) : p.qty!;
       account(o, pool);

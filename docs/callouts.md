@@ -97,6 +97,9 @@ Grammar:
   equal-or-shallower level, or EOF. No explicit terminator — heading levels self-delimit.
 - **At least two branches** (a one-branch choice is meaningless — linter error).
 - A branch may be a single leaf step or a multi-step subtree.
+- Branches are alternatives for their ingredients too: an ingredient every branch takes is
+  listed in each branch, with the amount that branch takes, and amounts in different branches
+  are never added together (SPEC §5.2).
 
 ### Pure alternative (self-contained methods)
 

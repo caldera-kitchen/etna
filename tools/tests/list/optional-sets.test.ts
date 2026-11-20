@@ -122,11 +122,14 @@ describe('an optional set', () => {
     ]);
   });
 
-  it('makes a set of an optional component inside a Choose branch', () => {
+  it('leaves an optional step inside a Choose branch to the branch, its lines optional within it', () => {
     const eggs = source('Eggs', '## Finish\n\n> **Choose** — one.\n\n' + step(3, 'Peel', ['4 eggs']) + '### Devilled\n\n' + step(4, 'Devil the yolks — optional', ['2 tbsp mayonnaise', '1 tsp capers']) + step(4, 'Fill', ['1 pinch paprika']));
     const list = consolidate([eggs]);
-    expect(list.items.map((i) => i.item)).toEqual(['eggs', 'paprika']);
-    expect(list.sets?.map((s) => [s.name, s.items.map((i) => i.item)])).toEqual([['Devil the yolks', ['mayonnaise', 'capers']]]);
+    expect(list.items).toEqual([]);
+    expect(list.sets?.map((s) => [s.name, s.branch?.name, s.items.map((i) => [i.item, i.optional])])).toEqual([
+      ['Finish', 'Peel', [['eggs', false]]],
+      ['Finish', 'Devilled', [['mayonnaise', true], ['capers', true], ['paprika', false]]],
+    ]);
   });
 
   it('keeps another recipe used inside a set in the set, said to be another recipe', () => {

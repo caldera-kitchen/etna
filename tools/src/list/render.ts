@@ -58,19 +58,33 @@ const OPTIONAL = ' (optional)';
 /** Said after an optional set's name (SPEC §8): its items are bought all together or not at all. */
 export const OPTIONAL_SET = 'optional, all or none';
 
-/** Said after another recipe used inside an optional set, where no "Other recipes" heading names it. */
+/** Said after another recipe used inside a set, where no "Other recipes" heading names it. */
 const ANOTHER_RECIPE = ' (another recipe)';
 
-/**
- * An optional set's heading: its name, the recipe it is for when the list has several, and
- * what it means. `Glaze — optional, all or none`;
- * `Glaze, for Roasted Root Vegetables — optional, all or none`.
- */
-export function setHeading(set: ListSet, list: ShoppingList, word = OPTIONAL_SET): string {
-  return `${setName(set, list)} — ${word}`;
+/** Said between a `Choose` component's name and a branch's name (SPEC §8): the cook makes one branch. */
+export const chooseOne = 'choose one';
+
+/** The words a set's heading says: `optional` after an optional set's name, `choose` before a branch's name. */
+export interface SetWords {
+  optional?: string;
+  choose?: string;
 }
 
-/** An optional set's name, with the recipe it is for when the list has several: `Glaze, for Roasted Root Vegetables`. */
+/**
+ * A set's heading: its name, the recipe it is for when the list has several, and what it
+ * means. `Glaze — optional, all or none`; `Glaze, for Roasted Root Vegetables — optional, all
+ * or none`. A branch of a `Choose` says the branch's name after the words "choose one":
+ * `Dough — choose one: Butter dough`; one that is optional as well ends with the optional
+ * words, `Topping — choose one: Streusel — optional, all or none`.
+ */
+export function setHeading(set: ListSet, list: ShoppingList, words: SetWords = {}): string {
+  const optional = words.optional ?? OPTIONAL_SET;
+  if (!set.branch) return `${setName(set, list)} — ${optional}`;
+  const head = `${setName(set, list)} — ${words.choose ?? chooseOne}: ${set.branch.name}`;
+  return set.branch.optional ? `${head} — ${optional}` : head;
+}
+
+/** A set's name, with the recipe it is for when the list has several: `Glaze, for Roasted Root Vegetables`. */
 export function setName(set: ListSet, list: ShoppingList): string {
   if (list.sources.length <= 1) return set.name;
   const title = list.sources.find((s) => s.id === set.source)?.title.trim() || set.source;
@@ -145,7 +159,7 @@ function headingText(list: ShoppingList): string {
 const MAX_COLUMN = 20;
 const MAX_TEXT_COLUMN = 36;
 
-/** Plain text: a heading line, then one item per line with the amounts in an aligned column; other recipes; then each optional set under its heading. */
+/** Plain text: a heading line, then one item per line with the amounts in an aligned column; other recipes; then each set (optional, or a branch of a `Choose`) under its heading. */
 export function formatListText(list: ShoppingList, options: ListFormat = {}): string {
   const o = resolve(options);
   type Row = { amount: string; text: string; uses: string };
@@ -183,7 +197,7 @@ export function formatListText(list: ShoppingList, options: ListFormat = {}): st
   return `${out.join('\n')}\n`;
 }
 
-/** A GitHub-style task list: `- [ ] 480 g heavy cream`, under a heading naming the recipes; each optional set under a heading of its own. */
+/** A GitHub-style task list: `- [ ] 480 g heavy cream`, under a heading naming the recipes; each set (optional, or a branch of a `Choose`) under a heading of its own. */
 export function formatListMarkdown(list: ShoppingList, options: ListFormat = {}): string {
   const o = resolve(options);
   const entry = (amount: string, text: string, uses: string) =>

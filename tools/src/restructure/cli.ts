@@ -11,8 +11,10 @@ Prove that a structured conversion kept a traditional recipe. Compares the two a
 with line numbers:
 
   - every ingredient line of the original: kept once with the same amount, unit, item and
-    note; or split into portions that sum exactly to it; or, with no amount, listed at
-    each step it enters. Anything else is missing, added, changed or duplicated;
+    note; or split into portions that sum exactly to it, never across two branches of one
+    Choose; or, with no amount, listed at each step it enters; or listed in full in each
+    of two or more branches of one Choose. Anything else is missing, added, changed or
+    duplicated;
   - every sentence of the directions: present word for word (white space and temperature
     notation aside), in the same order within its part. Otherwise missing, added,
     altered or reordered;

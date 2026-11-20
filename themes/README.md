@@ -166,6 +166,11 @@ A third layout is for any recipe, traditional or structured:
     `labels.optional-set` (`Glaze — optional, all or none`; with several
     recipes, `Glaze, for Roasted Root Vegetables — …`). They are totaled within their group
     only, never with what is needed or with another group;
+  - so are the ingredients of each branch of a `Choose` (SPEC §8): one group per branch
+    (`list-set list-branch`), among the optional ones in recipe order, headed by the
+    `Choose` component's name, `labels.choose-set` and the branch's name
+    (`Dough — choose one: Butter dough`), and by `labels.optional-set` after that when the
+    branch is optional as well. Two branches are never added together;
   - `options.slots.uses` adds, under each item, the steps that use it.
 
   Units, fractions and ranges follow `options.display`. The `intro` slot works as in the
@@ -353,6 +358,7 @@ translated in `theme.yaml` without touching its HTML. `{{label.<name>}}` prints 
 | `divided` | divided | Layout `hoisted`: after an ingredient merged from several steps (`1 ½ tsp kosher salt, divided`), in its `ingr-note`. |
 | `optional` | optional | Layout `list`: in parentheses after an item every line of which is optional (`fresh basil (optional)`), in its `list-optional`. |
 | `optional-set` | optional, all or none | Layout `list`: after the name of an optional component's or step's group of ingredients, in its `list-set-note`. |
+| `choose-set` | choose one | Layout `list`: between a `Choose` component's name and a branch's name, heading the branch's group of ingredients, in its `list-set-note` (`Dough — choose one: Butter dough`). |
 | `shopping-list` | Shopping list | A list for several recipes (`renderListCard`, the GUI's Shopping list): its title. There `{{label.shopping-list}}` prints the number of recipes (`3 recipes`). |
 | `for` | For | A list for several recipes: before the names of the recipes it is for. |
 | `callouts` | the keyword itself | A map: keyword → label printed (`Checkpoint: Check`). Keywords only: an aside prints the author's own label, and a theme check warns about any other key. Not a slot. |
@@ -445,7 +451,8 @@ here keeps its name.
 | `list-plus` `list-some` | The `+ ` before a second amount, and `some` for an amount without a quantity. |
 | `list-uses` | The steps that use the item (`options.slots.uses`), inside `ingr-item`. |
 | `list-set` | The `tbody` of one optional component's or step's ingredients (SPEC §8), after the needed items and the other recipes; `data-set` is the part's anchor. Its label row's `th` has `ingr-group-label list-set-label`. |
-| `list-set-note` | ` — optional, all or none` (`labels.optional-set`) after the set's name, inside its label. |
+| `list-set-note` | ` — optional, all or none` (`labels.optional-set`) after the set's name, inside its label; for a branch, ` — choose one: ` (`labels.choose-set`) before the branch's name, and the optional words after it when the branch is optional as well. |
+| `list-branch` | With `list-set`: the `tbody` of one branch of a `Choose` (SPEC §8); `data-set` is the branch's anchor. |
 | `list-optional` | ` (optional)` after an item (or another recipe) every line of which is optional (`labels.optional`), inside `ingr-item`, with `ingr-note`. |
 | `list-from` | What a converted total was made from, `(181 g + 2 tbsp)`, after the item; the amount itself is led by `≈`. |
 | `list-remark` | The remarks (SPEC §8), ` — or parsnips`, after the item, `list-optional` and `list-from`, inside `ingr-item`, with `ingr-remark`. A remark that not every line of a total carries is led by those lines' amounts: ` — 500 g: or parsnips`. |

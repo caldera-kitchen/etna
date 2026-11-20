@@ -634,3 +634,93 @@ describe('a note moved to its step as a callout', () => {
     expect(kinds(r)).not.toContain('note-moved');
   });
 });
+
+describe('an ingredient every branch of a Choose takes', () => {
+  const original = (lines: string[]) =>
+    `---\netna: 1\nform: traditional\n---\n\n# Item\n\n## Ingredients\n\n${lines.map((l) => `- ${l}\n`).join('')}\n## Directions\n\n1. Mix the flour.\n2. Method one: add the item. Bake.\n3. Method two: add the item. Fry.\n`;
+  const step = (level: number, name: string, lines: string[], text: string) => `${'#'.repeat(level)} ${name}\n\n${lines.map((l) => `- ${l}\n`).join('')}${lines.length ? '\n' : ''}${text}\n\n`;
+  const structured = (mix: string[], one: string[], two: string[]) =>
+    `---\netna: 1\n---\n\n# Item\n\n` +
+    step(2, 'Mix', mix, 'Mix the flour.') +
+    '## Cook\n\n> **Choose**\n\n' +
+    step(3, 'Method one', one, 'Method one: add the item. Bake.') +
+    step(3, 'Method two', two, 'Method two: add the item. Fry.');
+
+  it('accepts the line listed in full in each branch, and lists it for review', () => {
+    const r = check(original(['200 g flour', '1 cup item']), structured(['200 g flour'], ['1 cup item'], ['1 cup item']));
+    expect(r.ok).toBe(true);
+    expect(r.counts.ingredients).toEqual({ original: 2, accounted: 2 });
+    const f = r.findings.find((x) => x.kind === 'ingredient-each-branch')!;
+    expect(f.severity).toBe('review');
+    expect(f.message).toBe('"1 cup item" is listed in full in two branches of the Choose "Cook", once in each');
+    expect(f.original).toEqual([11]);
+    expect(f.structured).toHaveLength(2);
+  });
+
+  it('accepts a line without an amount listed in each branch the same way', () => {
+    const r = check(original(['200 g flour', 'item']), structured(['200 g flour'], ['item'], ['item']));
+    expect(r.ok).toBe(true);
+    expect(kinds(r, 'review')).toEqual(['ingredient-each-branch']);
+  });
+
+  it('still reports a second copy in the same branch as duplicated', () => {
+    const r = check(original(['200 g flour', '1 cup item']), structured(['200 g flour'], ['1 cup item', '1 cup item'], ['1 cup item']));
+    expect(lost(r)).toEqual(['ingredient-duplicated']);
+    expect(kinds(r, 'review')).toEqual(['ingredient-each-branch']);
+  });
+
+  it('still reports a copy outside the Choose as duplicated', () => {
+    const r = check(original(['200 g flour', '1 cup item']), structured(['200 g flour', '1 cup item'], ['1 cup item'], []));
+    expect(lost(r)).toEqual(['ingredient-duplicated']);
+    expect(kinds(r)).not.toContain('ingredient-each-branch');
+  });
+
+  it('still reports copies in two Chooses that are not one as duplicated', () => {
+    const two =
+      `---\netna: 1\n---\n\n# Item\n\n` +
+      step(2, 'Mix', ['200 g flour'], 'Mix the flour.') +
+      '## Cook\n\n### First\n\n> **Choose**\n\n' +
+      step(4, 'Method one', ['1 cup item'], 'Method one: add the item. Bake.') +
+      step(4, 'Other one', [], 'Other.') +
+      '### Second\n\n> **Choose**\n\n' +
+      step(4, 'Method two', ['1 cup item'], 'Method two: add the item. Fry.') +
+      step(4, 'Other two', [], 'Other.');
+    const r = check(original(['200 g flour', '1 cup item']), two);
+    expect(lost(r)).toContain('ingredient-duplicated');
+    expect(kinds(r)).not.toContain('ingredient-each-branch');
+  });
+
+  it('keeps the split rules within one branch', () => {
+    const inBranch =
+      `---\netna: 1\n---\n\n# Item\n\n` +
+      step(2, 'Mix', ['200 g flour'], 'Mix the flour.') +
+      '## Cook\n\n> **Choose**\n\n### Method one\n\n' +
+      step(4, 'Start', ['1/2 cup item'], 'Method one: add the item.') +
+      step(4, 'Finish', ['1/2 cup item'], 'Bake.') +
+      step(3, 'Method two', [], 'Method two: add the item. Fry.');
+    const r = check(original(['200 g flour', '1 cup item']), inBranch);
+    expect(r.ok).toBe(true);
+    expect(kinds(r, 'review')).toEqual(['ingredient-split']);
+  });
+
+  it('never adds portions in two branches into one split', () => {
+    const r = check(original(['200 g flour', '1 cup item']), structured(['200 g flour'], ['1/2 cup item'], ['1/2 cup item']));
+    expect(r.ok).toBe(false);
+    expect(kinds(r)).not.toContain('ingredient-split');
+    expect(kinds(r)).not.toContain('split-sum');
+    expect(lost(r).sort()).toEqual(['ingredient-added', 'ingredient-changed']);
+  });
+
+  it('takes branches of a Choose inside a branch as alternatives too', () => {
+    const nested =
+      `---\netna: 1\n---\n\n# Item\n\n` +
+      step(2, 'Mix', ['200 g flour'], 'Mix the flour.') +
+      '## Cook\n\n> **Choose**\n\n### Method one\n\n> **Choose**\n\n' +
+      step(4, 'Way one', ['1 cup item'], 'Method one: add the item.') +
+      step(4, 'Way two', ['1 cup item'], 'Bake.') +
+      step(3, 'Method two', ['1 cup item'], 'Method two: add the item. Fry.');
+    const r = check(original(['200 g flour', '1 cup item']), nested);
+    expect(lost(r)).toEqual([]);
+    expect(r.findings.find((f) => f.kind === 'ingredient-each-branch')?.message).toBe('"1 cup item" is listed in full in three branches of a Choose, once in each');
+  });
+});

@@ -427,6 +427,10 @@ A `Choose` callout attaches to a **component** heading and declares that the com
   heading of equal-or-shallower level, or EOF (ordinary markdown sectioning — no terminator).
 - **At least two branches** are required (a one-branch choice is an error, §9).
 - A branch may be a single leaf step or a multi-step subtree.
+- **Branches are alternatives for their ingredients too.** An ingredient every branch takes is
+  listed in each branch, with the amount that branch takes (the same `- 200 g flour` line
+  under each of two doughs). Amounts in different branches of one `Choose` are never added
+  together.
 - **Shared setup / finish compose via the spine (§7):** a sibling step *before* the `Choose`
   component is carried into every branch; a sibling step *after* it consumes the chosen
   branch's output. So `base → choose → common finish` needs no special construct.
@@ -699,6 +703,15 @@ All three are produced *from* `recipe.md`:
   stands under an optional heading nested in the set's, says "(optional)"; the set is the
   outermost optional heading. Another recipe used inside a set is listed in the set, said to
   be another recipe. A list's remarks print in a set as anywhere else.
+  The ingredients of each branch of a `Choose` are one set, listed after everything that is
+  needed, under the component's name, the words "choose one" and the branch's name
+  (`Dough — choose one: Butter dough`). A branch's lines are totaled among themselves only,
+  and two branches are never added together. A line in a branch belongs to the innermost
+  branch around it, never to an optional set around the `Choose`, and a branch is a set
+  however few its lines. Inside a branch, a line under an optional heading (the branch's own
+  included) says "(optional)"; the branches of a `Choose` that is designated optional, or that
+  stands inside an optional set, end their headings with the optional words too
+  (`Topping — choose one: Streusel — optional, all or none`).
 - **Coarse DAG** (deterministic). Steps → operation nodes; ingredient bullets → source
   nodes feeding their step; spine + references → edges. This reproduces a hand-drawn
   recipe graph with no AI. Control-flow constructs (callouts such as `Checkpoint`) are

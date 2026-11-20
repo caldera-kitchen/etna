@@ -484,6 +484,10 @@ the sentence word for word.
      steps a level below that), headed with the method's own words (*Spiral Mixer*,
      *KitchenAid*); its steps are named as usual (*Knead in a spiral mixer*, *Knead in a
      KitchenAid*). A branch heading is new text: flag it with the step names.
+  Branches are alternatives for their ingredients too: an ingredient every branch takes is
+  listed in each branch, with the amount that branch takes, and amounts in different
+  branches are never added together (SPEC §5.2). The checker lists it
+  (*ingredient-each-branch*).
   The callout stands before both branches although the separator stood between them; the
   checker accepts exactly this one move and lists it (*choose-separator*). Flag it
   (*Callout added*). Steps before the choice stay before it, and steps after it go in a
@@ -604,7 +608,8 @@ exists: in the collection itself, or in a full copy of it. Lint it there.
 
 What the checker accepts without failing, and lists for review: a line split into
 portions that sum exactly to it; a line without an amount listed at several steps; a line
-kept with its amount at one step and listed without it at others; a `1 recipe X` line
+kept with its amount at one step and listed without it at others; a line listed in full in
+each of two or more branches of one `Choose` (*ingredient-each-branch*); a `1 recipe X` line
 turned into a link to X; a line naming one of the recipe's own components turned into a
 link with the same amount; a step name turned into a heading; a part name not used as a
 heading; a direction's own leading number left out ("inner number dropped"); the

@@ -388,6 +388,7 @@ function build(recipe: Recipe, theme: Theme, options: CardOptions): Built {
       uses: settings.slots.uses === true,
       optional: settings.words.optional,
       optionalSet: settings.words['optional-set'],
+      chooseSet: settings.words['choose-set'],
     });
     body.directions = '';
     body.components = '';
@@ -470,6 +471,7 @@ function buildList(list: ShoppingList, theme: Theme, options: ListCardOptions): 
     uses: settings.slots.uses === true,
     optional: settings.words.optional,
     optionalSet: settings.words['optional-set'],
+    chooseSet: settings.words['choose-set'],
   });
 
   const titles = list.sources.map((s) => s.title.trim() || s.id);

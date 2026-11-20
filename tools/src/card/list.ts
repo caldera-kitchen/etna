@@ -7,7 +7,7 @@
 // Pure and browser-safe.
 
 import { canonicalUnit, formatQuantity, longUnit, type Quantity, type Recipe, type UnitDef } from '../core/index.ts';
-import { consolidate, ledText, OPTIONAL_SET, setName, type Amount, type ConsolidateOptions, type ListItem, type ListRecipe, type ListUse, type ShoppingList } from '../list/index.ts';
+import { chooseOne, consolidate, ledText, OPTIONAL_SET, setName, type Amount, type ConsolidateOptions, type ListItem, type ListRecipe, type ListUse, type ShoppingList } from '../list/index.ts';
 import type { Display } from './body.ts';
 import { esc, inlineText, safeUrl } from './html.ts';
 
@@ -21,6 +21,8 @@ export interface ListHtmlOptions {
   optional?: string;
   /** Said after an optional set's name (`labels.optional-set`); default "optional, all or none". */
   optionalSet?: string;
+  /** Said between a `Choose` component's name and a branch's name (`labels.choose-set`); default "choose one". */
+  chooseSet?: string;
 }
 
 /**
@@ -46,14 +48,17 @@ export function shoppingListHtml(list: ShoppingList, options: ListHtmlOptions): 
     const label = `<tr><th class="ingr-group-label" colspan="4" scope="rowgroup">${esc(options.otherRecipes)}</th></tr>`;
     groups.push(`<tbody class="ingr-group list-recipes">${label}${list.recipes.map((r) => recipeRow(r, list, options)).join('')}</tbody>`);
   }
-  // Each optional set after what is needed: a group headed by its name and "optional, all or none" (SPEC §8).
+  // Each set after what is needed (SPEC §8): an optional set headed by its name and "optional,
+  // all or none"; a branch of a Choose by the Choose's name, "choose one" and the branch's name
+  // (`list-branch`), and the optional words too when the branch is optional as well.
   for (const set of list.sets ?? []) {
-    const word = options.optionalSet ?? OPTIONAL_SET;
-    const label =
-      `<tr><th class="ingr-group-label list-set-label" colspan="4" scope="rowgroup">${esc(setName(set, list))}` +
-      `<span class="list-set-note"> — ${esc(word)}</span></th></tr>`;
+    const optional = `<span class="list-set-note"> — ${esc(options.optionalSet ?? OPTIONAL_SET)}</span>`;
+    const said = set.branch
+      ? `<span class="list-set-note"> — ${esc(options.chooseSet ?? chooseOne)}: </span>${esc(set.branch.name)}${set.branch.optional ? optional : ''}`
+      : optional;
+    const label = `<tr><th class="ingr-group-label list-set-label" colspan="4" scope="rowgroup">${esc(setName(set, list))}${said}</th></tr>`;
     const rows = [...set.items.map((item) => itemRow(item, list, options)), ...set.recipes.map((r) => recipeRow(r, list, options))];
-    groups.push(`<tbody class="ingr-group list-set" data-set="${esc(set.anchor)}">${label}${rows.join('')}</tbody>`);
+    groups.push(`<tbody class="ingr-group list-set${set.branch ? ' list-branch' : ''}" data-set="${esc(set.anchor)}">${label}${rows.join('')}</tbody>`);
   }
   return groups.length === 0 ? '' : `<table class="ingr-table list-table">${groups.join('')}</table>`;
 }

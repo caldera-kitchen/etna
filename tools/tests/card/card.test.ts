@@ -417,6 +417,17 @@ describe('structured form', () => {
     expect(notes.html.indexOf('fine')).toBeLessThan(notes.html.indexOf('flaky'));
   });
 
+  it('never merges lines in different branches of a Choose into a divided line, hoisted or paired', () => {
+    const source =
+      '---\netna: 1\n---\n\n# Stew\n\n## Season\n\n- 1 tsp kosher salt\n\nSeason.\n\n## Cook\n\n> **Choose**\n\n' +
+      '### Bake\n\n- 1 tsp kosher salt\n- 200 g item\n\nBake.\n\n### Fry\n\n- 1 tsp kosher salt\n- 200 g item\n\nFry.\n';
+    for (const html of [parts(source).html, renderCardParts(recipe(source), loadTheme('countertop')).html]) {
+      expect(html).not.toContain('divided');
+      expect(count(html, '>kosher salt</td>')).toBe(3);
+      expect(count(html, '>item</td>')).toBe(2);
+    }
+  });
+
   it('names the steps of a component inside a part after it', () => {
     const nested = parts(
       '---\netna: 1\n---\n\n# Rolls\n\n## Dough\n\n### Yudane\n\n#### Stir\n\n- 105 g flour\n\nStir.\n\n### Mix\n\n- [yudane](#yudane)\n\nMix.\n\n' +

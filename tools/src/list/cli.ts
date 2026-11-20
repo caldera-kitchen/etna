@@ -11,6 +11,8 @@ const HELP = `Usage: etna list <recipe-path...> [options]
 
 Make a shopping list: the ingredients of one or more recipes as a single list, with amounts
 totaled where the item and the unit are the same. Several recipes make one combined list.
+The ingredients of an optional component or step, and of each branch of a Choose, are a
+set of their own after what is needed, totaled within the set only.
 
 A path may be a recipe.md file, a recipe directory, a collection root (holding recipes/),
 or a directory of recipe directories.

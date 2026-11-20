@@ -265,9 +265,11 @@ export function checkTheme(files: Record<string, string>, options: CheckOptions 
       } catch {
         continue; // the samples are ours; a failure here is not the theme's
       }
-      // A list theme prints each ingredient once, other recipes in their own group, internal references not at all.
+      // A list theme prints each ingredient once, other recipes in their own group, each set
+      // (an optional part, a branch of a Choose) in its own group, internal references not at all.
       const shopping = recipeShoppingList(recipe);
-      const expected = theme.layout === 'list' ? shopping.items.length + shopping.recipes.length : SAMPLE_INGREDIENTS[sample];
+      const rowsOf = (g: { items: unknown[]; recipes: unknown[] }) => g.items.length + g.recipes.length;
+      const expected = theme.layout === 'list' ? rowsOf(shopping) + (shopping.sets ?? []).reduce((n, set) => n + rowsOf(set), 0) : SAMPLE_INGREDIENTS[sample];
       const where = `sample ${sample} recipe`;
       try {
         // With the notes asked for, so that every slot the skeleton has is filled once.

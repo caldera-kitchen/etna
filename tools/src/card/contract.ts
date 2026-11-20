@@ -70,6 +70,7 @@ export const DEFAULT_LABELS: Readonly<Record<string, string>> = {
   divided: 'divided',
   optional: 'optional',
   'optional-set': 'optional, all or none',
+  'choose-set': 'choose one',
   'other-recipes': 'Other recipes',
 };
 

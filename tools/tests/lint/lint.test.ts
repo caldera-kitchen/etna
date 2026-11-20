@@ -84,6 +84,11 @@ describe('lintRecipe', () => {
     expect(lint(source)).toEqual([]);
   });
 
+  it('says nothing about the same ingredient line in each branch of a Choose (SPEC §5.2)', () => {
+    const source = `${HEAD}# Test\n\n## Method\n\n> **Choose** — one.\n\n### Oven\n\n- 1 cup item\n- 200 g flour\n\nBake.\n\n### Pan\n\n- 1 cup item\n- 200 g flour\n\nFry.\n`;
+    expect(lint(source)).toEqual([]);
+  });
+
   it('is quiet about any callout label but one that looks like a mistake for a keyword (SPEC §5.1)', () => {
     const callout = (k: string) => lint(`${HEAD}# Test\n\n## Cook\n\nStir.\n\n> **${k}** — text.\n`);
     for (const k of ['Note', 'Tip', 'Warning', 'Make ahead', 'Variation', 'Substitute']) expect(callout(k), k).toEqual([]);

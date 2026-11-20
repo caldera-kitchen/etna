@@ -8,7 +8,7 @@ import { combineAmounts } from './convert.ts';
 import { matchCase, normalizeName, pluralMerges, splitLast } from './inflect.ts';
 import { addRanges, rangeOf, toQuantity, type RationalRange } from './rational.ts';
 
-export { formatListMarkdown, formatListText, formatAmount, ledText, OPTIONAL_SET, setHeading, setName, unconvertedFooter, type ListFormat } from './render.ts';
+export { chooseOne, formatListMarkdown, formatListText, formatAmount, ledText, OPTIONAL_SET, setHeading, setName, unconvertedFooter, type ListFormat, type SetWords } from './render.ts';
 
 export interface ListSource {
   /** One recipe going into the list, e.g. keyed by its slug. */
@@ -149,33 +149,42 @@ export interface ListRecipe {
 
 /**
  * The ingredients of one component or step designated optional (`## Glaze — optional`, SPEC
- * §6): bought all together or not at all (SPEC §8). Its lines are totaled among themselves and
- * never with the needed items, nor with another set, so each set carries its own amounts.
+ * §6): bought all together or not at all (SPEC §8). Or the ingredients of one branch of a
+ * `Choose` (SPEC §5.2): the cook makes one branch, so each branch is bought on its own. Its
+ * lines are totaled among themselves and never with the needed items, nor with another set, so
+ * each set carries its own amounts.
  */
 export interface ListSet {
   /** The recipe it belongs to (`ListSource.id`). */
   source: string;
-  /** The component's or step's name, without its optional qualifier (`Glaze`). */
+  /** The component's or step's name, without its optional qualifier (`Glaze`); for a branch, the `Choose` component's (`Dough`). */
   name: string;
-  /** Its heading anchor, unique in its recipe (`glaze--optional`). */
+  /** Its heading anchor, unique in its recipe (`glaze--optional`); for a branch, the branch's (`butter-dough`). */
   anchor: string;
   /** Its ingredients, totaled within the set. `optional` here means optional even when the set is bought. */
   items: ListItem[];
   /** Other recipes used as ingredients inside it. */
   recipes: ListRecipe[];
+  /**
+   * Present on the set of a branch of a `Choose`: the branch's name, and `optional` when the
+   * `Choose` component, or a heading around it, is designated optional, so that the branch is
+   * an optional set as well. Absent on an optional set.
+   */
+  branch?: { name: string; optional: boolean };
 }
 
 export interface ShoppingList {
   sources: { id: string; title: string }[];
-  /** What is needed: every line that stands under no optional heading. */
+  /** What is needed: every line that stands under no optional heading and in no branch of a `Choose`. */
   items: ListItem[];
   /** Other recipes used as ingredients (`[mango chutney](../mango-chutney/)`, or the unit `recipe`), not expanded. */
   recipes: ListRecipe[];
   /** Addition: items listed by weight and by volume that could not be totaled for lack of a density (only filled when a table is given). */
   unconverted: Unconverted[];
   /**
-   * The optional sets, one per component or step designated optional (the outermost, when one
-   * is inside another), in recipe order and then source order. Absent when there is none.
+   * The sets: one per component or step designated optional (the outermost, when one is inside
+   * another), and one per branch of a `Choose` (the innermost, when one is inside another), in
+   * recipe order and then in the order of their first lines. Absent when there is none.
    */
   sets?: ListSet[];
 }
@@ -186,11 +195,22 @@ export interface PlacedLine {
   step: string | null;
   /**
    * The optional set it belongs to: the outermost component or step around it designated
-   * optional (SPEC §6), by name and anchor; null when it is needed.
+   * optional (SPEC §6), by name and anchor; null when it is needed, or when it is in a branch
+   * of a `Choose` (then `branch` says which).
    */
   set: { name: string; anchor: string } | null;
-  /** True when a heading inside its set is designated optional as well: optional even when the set is bought. */
+  /**
+   * True when a heading inside its set is designated optional as well: optional even when the
+   * set is bought. For a line in a branch: when the branch, or a heading inside it, is.
+   */
   optionalInSet: boolean;
+  /**
+   * The branch of a `Choose` it is in: the innermost one around it (SPEC §5.2, §8), by the
+   * `Choose` component's name, the branch's name and the branch's anchor. `optional` is true
+   * when the `Choose` component, or a heading around it, is designated optional. Null, or
+   * absent on a hand-built line, outside every `Choose`.
+   */
+  branch?: { choose: string; name: string; anchor: string; optional: boolean } | null;
 }
 
 /**
@@ -199,7 +219,8 @@ export interface PlacedLine {
  * Structured: the preamble (step null), then each component's own blocks (step = the
  * component heading) and each step's ingredients, depth-first. The format gives bullets in a
  * preamble or directly under a component no meaning, but a shopping list must not drop an
- * ingredient, so they are listed. Every branch of a `Choose` component is listed.
+ * ingredient, so they are listed. Every branch of a `Choose` component is listed, each line
+ * with the branch it is in.
  *
  * Traditional: the preamble, then every ingredient group; `step` is the name of the part
  * (`### Sauce`, or the older bold line `**Sauce**`) the line is listed under, null for the
@@ -208,28 +229,48 @@ export interface PlacedLine {
 export function ingredientLines(recipe: Recipe): PlacedLine[] {
   const out: PlacedLine[] = [];
   type Set = PlacedLine['set'];
-  const fromBlocks = (blocks: StepBlock[], step: string | null, set: Set, optionalInSet: boolean) => {
-    for (const b of blocks) if (b.kind === 'ingredients') for (const line of b.items) out.push({ line, step, set, optionalInSet });
+  type Branch = NonNullable<PlacedLine['branch']>;
+  /** Where a line sits: its optional set and its branch; `inner` is its own optional flag within either. */
+  interface At {
+    set: Set;
+    branch: Branch | null;
+    inner: boolean;
+  }
+  const place = (line: IngredientLine, step: string | null, at: At): PlacedLine =>
+    at.branch ? { line, step, set: null, optionalInSet: at.inner, branch: at.branch } : { line, step, set: at.set, optionalInSet: at.inner, branch: null };
+  const fromBlocks = (blocks: StepBlock[], step: string | null, at: At) => {
+    for (const b of blocks) if (b.kind === 'ingredients') for (const line of b.items) out.push(place(line, step, at));
   };
-  fromBlocks(recipe.preamble, null, null, false);
+  fromBlocks(recipe.preamble, null, { set: null, branch: null, inner: false });
   if (recipe.traditional) {
-    for (const group of recipe.traditional.ingredients?.items ?? []) for (const line of group.items) out.push({ line, step: group.label, set: null, optionalInSet: false });
+    for (const group of recipe.traditional.ingredients?.items ?? []) for (const line of group.items) out.push({ line, step: group.label, set: null, optionalInSet: false, branch: null });
     return out;
   }
-  const walk = (nodes: Recipe['nodes'], set: Set, optionalInSet: boolean) => {
+  const walk = (nodes: Recipe['nodes'], at: At) => {
     for (const node of nodes) {
-      // The outermost optional heading makes the set; one inside it makes its lines optional within it.
-      const own = node.optional && set === null ? { name: nodeName(node), anchor: node.heading.anchor } : set;
-      const inner = optionalInSet || (node.optional && set !== null);
+      // The outermost optional heading makes the set; one inside it makes its lines optional
+      // within it. Inside a branch, the branch is the set: an optional heading there makes its
+      // lines optional within the branch.
+      const set = node.optional && at.set === null ? { name: nodeName(node), anchor: node.heading.anchor } : at.set;
+      const inner = at.inner || (node.optional && (at.set !== null || at.branch !== null));
+      const here: At = { set, branch: at.branch, inner };
       if (node.kind === 'step') {
-        for (const line of node.ingredients) out.push({ line, step: node.heading.text, set: own, optionalInSet: inner });
-      } else {
-        fromBlocks(node.blocks, node.heading.text, own, inner);
-        walk(node.children, own, inner);
+        for (const line of node.ingredients) out.push(place(line, node.heading.text, here));
+        continue;
+      }
+      fromBlocks(node.blocks, node.heading.text, here);
+      if (!node.choose) {
+        walk(node.children, here);
+        continue;
+      }
+      // Each branch of a Choose is its own set; one inside a branch replaces the outer branch.
+      for (const child of node.children) {
+        const branch = { choose: nodeName(node), name: nodeName(child), anchor: child.heading.anchor, optional: set !== null };
+        walk([child], { set, branch, inner: false });
       }
     }
   };
-  walk(recipe.nodes, null, false);
+  walk(recipe.nodes, { set: null, branch: null, inner: false });
   return out;
 }
 
@@ -288,39 +329,44 @@ export function consolidate(sources: ListSource[], options: ConsolidateOptions =
   const unconverted: Unconverted[] = [];
   const gather = (groups: { source: ListSource; lines: PlacedLine[] }[]) => totals(groups, merges, options, unconverted);
 
-  // Each optional set on its own, recipe by recipe, in the order its first line comes.
+  // Each optional set and each branch of a Choose on its own, recipe by recipe, in the order its
+  // first line comes.
   const grouped = placed.map(({ source, lines }) => {
-    const byAnchor = new Map<string, { name: string; lines: PlacedLine[] }>();
+    const byAnchor = new Map<string, { name: string; anchor: string; branch: ListSet['branch']; lines: PlacedLine[] }>();
     for (const l of lines) {
-      if (l.set === null) continue;
-      const found = byAnchor.get(l.set.anchor);
+      const at = l.branch ? { anchor: l.branch.anchor, name: l.branch.choose, branch: { name: l.branch.name, optional: l.branch.optional } } : l.set ? { ...l.set, branch: undefined } : null;
+      if (at === null) continue;
+      const key = `${at.branch ? 'branch' : 'set'}:${at.anchor}`;
+      const found = byAnchor.get(key);
       if (found) found.lines.push(l);
-      else byAnchor.set(l.set.anchor, { name: l.set.name, lines: [l] });
+      else byAnchor.set(key, { name: at.name, anchor: at.anchor, branch: at.branch, lines: [l] });
     }
-    // One item is not a set (SPEC §8): its line is an optional line among what is needed. Counted
-    // on a trial total, which reports nothing.
+    // One item is not an optional set (SPEC §8): its line is an optional line among what is
+    // needed. Counted on a trial total, which reports nothing. A branch is a set however small.
     const alone = new Set<string>();
-    for (const [anchor, { lines: setLines }] of byAnchor) {
+    for (const [key, { branch, lines: setLines }] of byAnchor) {
+      if (branch) continue;
       const trial = totals([{ source, lines: setLines }], merges, options, []);
-      if (trial.items.length + trial.recipes.length === 1) alone.add(anchor);
+      if (trial.items.length + trial.recipes.length === 1) alone.add(key);
     }
     return { source, lines, byAnchor, alone };
   });
 
-  // What is needed: every line under no optional heading, and the line of a set of one, optional.
+  // What is needed: every line under no optional heading and in no branch, and the line of an
+  // optional set of one, optional.
   const needed = gather(
     grouped.map(({ source, lines, alone }) => ({
       source,
-      lines: lines.flatMap((l) => (l.set === null ? [l] : alone.has(l.set.anchor) ? [{ ...l, set: null, optionalInSet: true }] : [])),
+      lines: lines.flatMap((l) => (l.branch ? [] : l.set === null ? [l] : alone.has(`set:${l.set.anchor}`) ? [{ ...l, set: null, optionalInSet: true }] : [])),
     })),
   );
 
   const sets: ListSet[] = [];
   for (const { source, byAnchor, alone } of grouped) {
-    for (const [anchor, { name, lines: setLines }] of byAnchor) {
-      if (alone.has(anchor)) continue;
+    for (const [key, { name, anchor, branch, lines: setLines }] of byAnchor) {
+      if (alone.has(key)) continue;
       const { items, recipes } = gather([{ source, lines: setLines }]);
-      if (items.length > 0 || recipes.length > 0) sets.push({ source: source.id, name, anchor, items, recipes });
+      if (items.length > 0 || recipes.length > 0) sets.push({ source: source.id, name, anchor, items, recipes, ...(branch ? { branch } : {}) });
     }
   }
 

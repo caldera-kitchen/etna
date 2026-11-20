@@ -678,3 +678,25 @@ describe('the shopping list the GUI shows prints the remarks', () => {
     expect(formatListText(list)).toContain('carrots, peeled — or parsnips\n');
   });
 });
+
+describe('the shopping list the GUI shows keeps the branches of a Choose apart', () => {
+  it('in the list card and in the copied text, for one recipe and for two', async () => {
+    const { formatListText } = await import('../../src/list/index.ts');
+    const md =
+      '---\netna: 1\n---\n\n# Beans\n\n## Cook\n\n> **Choose**\n\n### Slow\n\n- 16 oz item\n\nCook slowly.\n\n### Fast\n\n- 16 oz item\n\nCook fast.\n\n## Serve\n\n- 1 cup flour\n\nServe.\n';
+    const recipe = await_core.parseRecipe(md, { units: (await import('../../src/node/files.ts')).loadUnits() });
+    const entry = (id: string) => ({ id, title: 'Beans', recipe: { ok: true as const, value: recipe } });
+    const { list } = engine.combinedList([entry('a/beans')], null);
+    expect(list.items.map((i) => i.item)).toEqual(['flour']);
+    const card = engine.listCard(list, builtinThemes.find((e) => e.name === 'shopping')!);
+    expect(card.ok).toBe(true);
+    if (card.ok) {
+      expect(card.value).toContain('Cook<span class="list-set-note"> — choose one: </span>Slow</th>');
+      expect(card.value).toContain('Cook<span class="list-set-note"> — choose one: </span>Fast</th>');
+      expect(card.value).not.toContain('32');
+    }
+    expect(formatListText(list)).toContain('Cook — choose one: Slow\n16 oz  item\n\nCook — choose one: Fast\n16 oz  item\n');
+    const two = engine.combinedList([entry('a/beans'), entry('b/beans')], null).list;
+    expect(two.sets?.map((s) => s.items.map((i) => i.amounts[0].quantity?.raw))).toEqual([['16'], ['16'], ['16'], ['16']]);
+  });
+});
