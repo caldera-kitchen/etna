@@ -125,6 +125,26 @@ starts a read-only viewer and prints its address (`http://localhost:4173`; if th
 taken it stops with `EADDRINUSE`, and `--port <n>` picks another). Stop it when you are
 done.
 
+## A picture, only when it is theirs
+
+A recipe may have one picture (SPEC §4.3; `docs/contributing-a-recipe.md`, "A picture, if
+you have one"). Add one only when the person hands you a photograph of the dish and says
+they took it.
+
+- Never fetch a picture from a web page, and never take one from the source: a book's or a
+  site's photograph belongs to whoever took it, credit or not. A photo handed over to be
+  transcribed is the recipe's text, not its picture.
+- The location comes out first, and the person takes it out: every copy keeps it. When
+  `etna lint` reports `picture-location`, stop and ask them to save the photograph again
+  without it, as the guide says. Never repeat the place the file names.
+- Make the two copies as the guide does: a square cut from the middle, then
+  `image/etna.jpg` at 1200 pixels and `image/markdown.jpg` at 320.
+- The picture line's words are the person's. Propose words for what the picture shows and
+  wait for a yes, as with any rewording; the line goes first under the title, in either
+  form.
+- Then run Step 2 again: `etna lint` checks the files, their sizes, the location and the
+  picture line.
+
 ## Mistakes to prevent
 
 1. **An ingredient list at the top of a structured recipe.** Each line goes under the step
