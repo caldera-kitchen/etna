@@ -7,7 +7,7 @@ import { parse as parseYaml } from 'yaml';
 
 import { STYLESHEET } from '../card/theme.ts';
 import { catalogFromSlugs, type Catalog, type CatalogEntry } from '../catalog/index.ts';
-import { isValidSlug } from '../core/index.ts';
+import { isPictureName, isValidSlug, PICTURE_LIMIT, type PictureBytes } from '../core/index.ts';
 import { readOrder } from './listorder.ts';
 import { parseRepo, REPO_RE } from './repo.ts';
 
@@ -23,6 +23,11 @@ export interface RepoSource {
   read(path: string): Promise<string>;
   /** A link to the file on the web, when there is one. */
   link(path: string): string | null;
+  /**
+   * Where the file `name` of the recipe at `path` is read from: `<recipe folder>/image/<name>`.
+   * Asked only for a name Etna reads (isPictureName) that the catalog lists for that recipe.
+   */
+  imageUrl(path: string, name: string): string;
   /** Names of the card themes this source carries (from its catalog; empty when none or unknown). */
   themes(): Promise<string[]>;
   /** A theme's files: file name → text. Rejects if the theme is missing or too large. */
@@ -139,6 +144,16 @@ export function isRecipePath(path: unknown): path is string {
   return typeof path === 'string' && path.length <= 300 && RECIPE_PATH_RE.test(path);
 }
 
+/** A file name as a catalog may list it in a recipe's `image/` folder: one plain name, not hidden, no path. */
+const IMAGE_NAME_RE = /^[^./\\\u0000-\u001f\u007f][^/\\\u0000-\u001f\u007f]{0,99}$/;
+
+/** The `image` key of a catalog entry, kept when it lists plain file names: at most 50, de-duplicated, sorted. */
+function imageNames(raw: unknown): { image?: string[] } {
+  if (!Array.isArray(raw)) return {};
+  const names = [...new Set(raw.filter((n): n is string => typeof n === 'string' && IMAGE_NAME_RE.test(n)))].slice(0, 50).sort();
+  return names.length > 0 ? { image: names } : {};
+}
+
 /**
  * A catalog as a source sent it, reduced to what the app can rely on: entries with a slug, a
  * title and a plain recipe path; text fields that are text. Anything else is dropped.
@@ -161,6 +176,7 @@ export function cleanCatalog(raw: unknown): Catalog {
       ingredients: Array.isArray(e.ingredients) ? e.ingredients.filter((i): i is string => typeof i === 'string') : [],
       text: text(e.text) ?? '',
       path: e.path,
+      ...imageNames(e.image),
     });
   }
   const themes = cleanThemeNames(data.themes);
@@ -218,6 +234,10 @@ export class LocalSource implements RepoSource {
 
   link() {
     return null;
+  }
+
+  imageUrl(path: string, name: string) {
+    return `api/sources/${encodeURIComponent(this.id)}/image?path=${encodeURIComponent(imagePath(path, name))}`;
   }
 
   densities() {
@@ -292,6 +312,10 @@ export class SiteSource implements RepoSource {
     return null;
   }
 
+  imageUrl(path: string, name: string) {
+    return this.url(imagePath(path, name));
+  }
+
   densities() {
     this.table ??= optionalText(this.url('densities.md'), DENSITIES_LIMIT);
     return this.table;
@@ -348,16 +372,20 @@ export class GitHubSource implements RepoSource {
     const shipped = await fetch(this.raw('catalog.json'));
     if (shipped.ok) return { catalog: cleanCatalog(JSON.parse(await textWithin(shipped, SOURCE_LIMITS.catalogBytes, 'catalog.json'))), nameOnly: false };
     const response = await fetchOk(`https://api.github.com/repos/${this.id}/git/trees/${this.ref}?recursive=1`);
-    const tree = (await response.json()) as { tree: { path: string }[] };
+    const tree = (await response.json()) as { tree: { path: string; type?: string }[] };
     const slugs: string[] = [];
     const themes: string[] = [];
+    const images = new Map<string, string[]>();
     for (const t of tree.tree) {
       const recipe = /^recipes\/([^/]+)\/recipe\.md$/.exec(t.path);
       if (recipe && isValidSlug(recipe[1])) slugs.push(recipe[1]);
       const theme = /^themes\/([^/]+)\/theme\.yaml$/.exec(t.path);
       if (theme) themes.push(theme[1]);
+      const image = /^recipes\/([^/]+)\/image\/([^/]+)$/.exec(t.path);
+      if (image && t.type === 'blob' && !image[2].startsWith('.')) images.set(image[1], [...(images.get(image[1]) ?? []), image[2]]);
     }
     const catalog = catalogFromSlugs(slugs);
+    for (const entry of catalog.recipes) Object.assign(entry, imageNames(images.get(entry.slug)));
     const names = cleanThemeNames(themes);
     return { catalog: names.length > 0 ? { ...catalog, themes: names } : catalog, nameOnly: true };
   }
@@ -400,9 +428,83 @@ export class GitHubSource implements RepoSource {
     return isRecipePath(path) ? `https://github.com/${this.id}/blob/${this.ref}/${path}` : null;
   }
 
+  imageUrl(path: string, name: string) {
+    return this.raw(imagePath(path, name));
+  }
+
   /** One fetch of densities.md at the repository root, once; no API call. Missing or failed: null. */
   densities() {
     this.table ??= optionalText(this.raw('densities.md'), DENSITIES_LIMIT);
     return this.table;
+  }
+}
+
+// ---------------------------------------------------------------- the picture
+
+/** `<recipe folder>/image/<name>` for the recipe file at `path`. */
+function imagePath(path: string, name: string): string {
+  if (!isRecipePath(path) || !isPictureName(name)) throw new Error('not a picture file in this collection');
+  return `${path.slice(0, -'recipe.md'.length)}image/${name}`;
+}
+
+/**
+ * How much of a picture file over PICTURE_LIMIT is kept (256 KiB): its start, which holds its
+ * header and Exif data, as `etna lint` reads a large one.
+ */
+export const PICTURE_HEAD = 256 * 1024;
+
+/**
+ * One picture file: all its bytes, or, when it is larger than PICTURE_LIMIT, its first
+ * PICTURE_HEAD bytes and its size (the server's, or at least what was read). Rejects when it
+ * cannot be had.
+ */
+async function readPictureFile(url: string, name: string): Promise<PictureBytes> {
+  const response = await fetchOk(url);
+  const declared = Number(response.headers?.get?.('content-length') ?? 0);
+  const chunks: Uint8Array[] = [];
+  let total = 0;
+  const reader = response.body?.getReader();
+  if (reader) {
+    // Read as it comes, and stop past the limit: a large file is not fetched whole.
+    for (;;) {
+      const { done, value } = await reader.read();
+      if (done) break;
+      chunks.push(value);
+      total += value.length;
+      if (total > PICTURE_LIMIT) {
+        await reader.cancel().catch(() => undefined);
+        break;
+      }
+    }
+  } else {
+    const all = new Uint8Array(await response.arrayBuffer());
+    chunks.push(all);
+    total = all.length;
+  }
+  const bytes = new Uint8Array(total);
+  let at = 0;
+  for (const chunk of chunks) {
+    bytes.set(chunk, at);
+    at += chunk.length;
+  }
+  if (total > PICTURE_LIMIT) return { name, bytes: bytes.slice(0, PICTURE_HEAD), size: Math.max(declared, total) };
+  return { name, bytes };
+}
+
+/**
+ * The files of the recipe's `image/` folder (SPEC §4.3), as the catalog lists them: the ones
+ * Etna reads with their bytes (readPictureFile), any other with its name alone. An empty list
+ * when the catalog lists none. Null when the folder cannot be seen: the recipe is not in the
+ * catalog, or a file it lists cannot be read; then nothing is said about the picture's files.
+ */
+export async function readImageFolder(source: RepoSource, path: string): Promise<PictureBytes[] | null> {
+  const entry = (await source.catalog()).catalog.recipes.find((r) => r.path === path);
+  if (!entry) return null;
+  try {
+    return await Promise.all(
+      (entry.image ?? []).map((name) => (isPictureName(name) ? readPictureFile(source.imageUrl(path, name), name) : { name, bytes: new Uint8Array(0) })),
+    );
+  } catch {
+    return null;
   }
 }

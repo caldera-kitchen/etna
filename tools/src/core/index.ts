@@ -1,7 +1,19 @@
 // The shared core. Pure: no file system, no Node APIs — it runs the same in a browser.
 
 export type * from './model.ts';
-export { readPicture, pictureDataAddress, isPictureAddress, PICTURE_ADDRESSES, type PictureInfo, type PictureKind } from './picture.ts';
+export {
+  readPicture,
+  pictureDataAddress,
+  isPictureAddress,
+  isPictureName,
+  etnaPicture,
+  PICTURE_ADDRESSES,
+  PICTURE_LIMIT,
+  PICTURE_NAMES,
+  type PictureBytes,
+  type PictureInfo,
+  type PictureKind,
+} from './picture.ts';
 export { parseRecipe, imageOnly, isNotesHeading, isOptionalHeading, nodeName, partKey, splitQualifier, traditionalParts, type ParseOptions, type TraditionalPart, type TraditionalParts } from './parse.ts';
 export { parseNumber, parseQuantity, formatNumber, formatQuantity, isPlural, type FractionStyle, type QuantityFormat } from './quantity.ts';
 export { UnitRegistry, createUnitRegistry, canonicalUnit, longUnit } from './units.ts';

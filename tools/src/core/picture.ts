@@ -13,6 +13,44 @@ export function isPictureAddress(address: string): boolean {
   return (PICTURE_ADDRESSES as readonly string[]).includes(address);
 }
 
+/** The names Etna reads in a recipe's `image/` folder (SPEC §4.3). */
+export const PICTURE_NAMES = ['etna.jpg', 'etna.png', 'markdown.jpg', 'markdown.png'] as const;
+
+/** True for a file name Etna reads in `image/`. */
+export function isPictureName(name: string): boolean {
+  return (PICTURE_NAMES as readonly string[]).includes(name);
+}
+
+/** The largest picture file Etna shows: SPEC §4.3 lets a tool decline one over 1024 KiB. */
+export const PICTURE_LIMIT = 1024 * 1024;
+
+/** A file in a recipe's `image/` folder, as a caller read it. */
+export interface PictureBytes {
+  /** The file's name in the folder (`etna.jpg`). */
+  name: string;
+  /** Its bytes: all of them, or only its start when `size` says it is larger. */
+  bytes: Uint8Array;
+  /** The whole file's size in bytes, when `bytes` holds only its start. Defaults to `bytes.length`. */
+  size?: number;
+}
+
+/**
+ * The picture Etna shows, from the files of a recipe's `image/` folder: `etna.jpg`, else
+ * `etna.png`, as a `data:` address. Null when neither is there. When the first of them that is
+ * there cannot be shown (over PICTURE_LIMIT, or not what its ending says), `note` says why, as
+ * in "image/etna.jpg is larger than 1024 KiB"; the other is not tried.
+ */
+export function etnaPicture(files: readonly PictureBytes[]): { src: string } | { note: string } | null {
+  for (const [name, kind] of [['etna.jpg', 'jpeg'], ['etna.png', 'png']] as const) {
+    const file = files.find((f) => f.name === name);
+    if (!file) continue;
+    if ((file.size ?? file.bytes.length) > PICTURE_LIMIT) return { note: `image/${name} is larger than 1024 KiB` };
+    const src = readPicture(file.bytes)?.kind === kind ? pictureDataAddress(file.bytes) : null;
+    return src === null ? { note: `image/${name} is not a ${kind === 'jpeg' ? 'JPEG' : 'PNG'}` } : { src };
+  }
+  return null;
+}
+
 export type PictureKind = 'jpeg' | 'png';
 
 export interface PictureInfo {

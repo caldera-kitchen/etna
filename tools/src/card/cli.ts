@@ -3,7 +3,7 @@
 import { existsSync, mkdirSync, readFileSync, statSync, writeFileSync } from 'node:fs';
 import { basename, dirname, join, resolve } from 'node:path';
 
-import { pictureDataAddress, readPicture } from '../core/index.ts';
+import { etnaPicture, PICTURE_LIMIT } from '../core/index.ts';
 
 import { findRecipes, loadUnits, readRecipe, type RecipeFile } from '../node/files.ts';
 import { findCollectionRoot, loadDensities } from '../density/node.ts';
@@ -268,34 +268,32 @@ export async function run(argv: string[]): Promise<number> {
   return failed > 0 ? 1 : 0;
 }
 
-/** The largest picture file a card loads (SPEC §4.3 lets a tool decline one over 1024 KiB). */
-const PICTURE_LIMIT = 1024 * 1024;
-
 /**
  * The picture a card of this recipe shows: `image/etna.jpg`, else `image/etna.png`, in the
- * recipe's folder. None for a loose file outside a recipe folder. A file over 1024 KiB, or one
- * whose contents are not what its ending says, gives no picture and a note saying why.
+ * recipe's folder (etnaPicture). None for a loose file outside a recipe folder. A file over
+ * 1024 KiB, or one whose contents are not what its ending says, gives no picture and a note
+ * saying why.
  */
 function recipePicture(file: string): CardOptions['picture'] {
   if (basename(file) !== 'recipe.md') return undefined;
-  for (const [name, kind] of [['etna.jpg', 'jpeg'], ['etna.png', 'png']] as const) {
+  const note = (why: string) => {
+    console.error(`etna card: ${file}: ${why}: the card has no picture`);
+    return undefined;
+  };
+  for (const name of ['etna.jpg', 'etna.png']) {
     const path = join(dirname(file), 'image', name);
     if (!existsSync(path)) continue;
-    const note = (why: string) => {
-      console.error(`etna card: ${file}: image/${name} ${why}: the card has no picture`);
-      return undefined;
-    };
+    let found: ReturnType<typeof etnaPicture>;
     try {
       const stat = statSync(path);
-      if (!stat.isFile()) return note('is not a file');
-      if (stat.size > PICTURE_LIMIT) return note('is larger than 1024 KiB');
-      const bytes = new Uint8Array(readFileSync(path));
-      if (readPicture(bytes)?.kind !== kind) return note(`is not a ${kind === 'jpeg' ? 'JPEG' : 'PNG'}`);
-      const src = pictureDataAddress(bytes);
-      return src === null ? undefined : { src };
+      if (!stat.isFile()) return note(`image/${name} is not a file`);
+      // A file over the limit is not read: its size alone refuses it.
+      const bytes = stat.size > PICTURE_LIMIT ? new Uint8Array(0) : new Uint8Array(readFileSync(path));
+      found = etnaPicture([{ name, bytes, size: stat.size }]);
     } catch (error) {
-      return note(`cannot be read (${(error as Error).message})`);
+      return note(`image/${name} cannot be read (${(error as Error).message})`);
     }
+    return found === null ? undefined : 'note' in found ? note(found.note) : found;
   }
   return undefined;
 }

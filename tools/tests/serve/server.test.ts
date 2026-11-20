@@ -1,5 +1,5 @@
 import { createHash } from 'node:crypto';
-import { mkdirSync, mkdtempSync, rmSync, symlinkSync, writeFileSync } from 'node:fs';
+import { mkdirSync, mkdtempSync, readFileSync, rmSync, symlinkSync, writeFileSync } from 'node:fs';
 import { request } from 'node:http';
 import type { AddressInfo } from 'node:net';
 import { tmpdir } from 'node:os';
@@ -139,6 +139,9 @@ describe('etna serve', () => {
   });
 });
 
+/** A small JPEG, from the linter's tests. */
+const PICTURE = readFileSync(join(ETNA_ROOT, 'tests', 'linter', 'clean-picture', 'input', 'test-soup', 'image', 'markdown.jpg'));
+
 describe('etna serve: a collection from someone else', () => {
   let base = '';
   let port = 0;
@@ -154,6 +157,14 @@ describe('etna serve: a collection from someone else', () => {
     writeFileSync(join(collection, 'densities.md'), '# Ingredient densities\n');
     writeFileSync(join(collection, 'README.md'), '# Ours\n\n- [Toast](recipes/toast/) — bread, toasted.\n- [Nothing](recipes/nothing/)\n');
     writeFileSync(join(collection, 'recipes', 'toast', 'recipe.md'), '---\netna: 1\n---\n\n# Toast\n\n## Toast\n\n- 1 slice bread\n\nToast it.\n');
+    // The picture: one Etna reads, one it does not, and one that is a link out of the collection.
+    mkdirSync(join(collection, 'recipes', 'toast', 'image'));
+    writeFileSync(join(collection, 'recipes', 'toast', 'image', 'etna.jpg'), PICTURE);
+    writeFileSync(join(collection, 'recipes', 'toast', 'image', 'photo.jpg'), PICTURE);
+    symlinkSync(join(root, 'secret.txt'), join(collection, 'recipes', 'toast', 'image', 'markdown.png'));
+    // An image folder with no recipe beside it.
+    mkdirSync(join(collection, 'recipes', 'stray', 'image'), { recursive: true });
+    writeFileSync(join(collection, 'recipes', 'stray', 'image', 'etna.jpg'), PICTURE);
     const server = await createEtnaServer(foldersFrom([collection]));
     await new Promise<void>((ready) => server.listen(0, '127.0.0.1', ready));
     port = (server.address() as AddressInfo).port;
@@ -179,6 +190,29 @@ describe('etna serve: a collection from someone else', () => {
     expect(catalog).not.toContain('SECRET');
     expect(catalog).toContain('Toast');
     expect((await fetch(`${base}/api/sources/collection/file?path=${encodeURIComponent('recipes/toast/recipe.md')}`)).status).toBe(200);
+  });
+
+  it('lists a recipe’s image files in the catalog, and serves the ones Etna reads as bytes', async () => {
+    const catalog = await (await fetch(`${base}/api/sources/collection/catalog`)).json();
+    // The link out of the collection is not listed, as the linter does not see it.
+    expect(catalog.recipes.find((r: { slug: string }) => r.slug === 'toast').image).toEqual(['etna.jpg', 'photo.jpg']);
+    const image = (path: string) => fetch(`${base}/api/sources/collection/image?path=${encodeURIComponent(path)}`);
+    const res = await image('recipes/toast/image/etna.jpg');
+    expect(res.status).toBe(200);
+    expect(res.headers.get('content-type')).toBe('application/octet-stream');
+    expect(res.headers.get('x-content-type-options')).toBe('nosniff');
+    expect(res.headers.get('content-length')).toBe(String(PICTURE.length));
+    expect(new Uint8Array(await res.arrayBuffer())).toEqual(new Uint8Array(PICTURE));
+    expect((await image('recipes/toast/image/etna.png')).status).toBe(404);
+  });
+
+  it('serves no other file through the image address', async () => {
+    const image = (path: string) => fetch(`${base}/api/sources/collection/image?path=${encodeURIComponent(path)}`);
+    for (const path of ['recipes/toast/image/photo.jpg', 'recipes/toast/recipe.md', '../secret.txt', 'recipes/toast/image/../../../../secret.txt', 'recipes/stray/image/etna.jpg', 'recipes/toast/image/markdown.png', '']) {
+      const res = await image(path);
+      expect(res.status, path).toBe(403);
+      expect(await res.text()).not.toContain('SECRET');
+    }
   });
 
   it('serves the collection’s own densities.md, and only that file', async () => {

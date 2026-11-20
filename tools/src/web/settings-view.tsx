@@ -616,6 +616,12 @@ function CardsSection(props: PanelProps) {
           Print the recipe’s notes on the card
         </label>
       </Row>
+      <Row label="Picture" id="pref-card-picture" set={c.picture !== undefined} onReset={() => set('picture', undefined)} help="For recipes with a picture, in a style with a place for one.">
+        <label class="pref-check">
+          <input id="pref-card-picture" type="checkbox" checked={c.picture !== false} onChange={(e) => set('picture', (e.target as HTMLInputElement).checked)} />
+          Show the recipe’s picture on the card
+        </label>
+      </Row>
       <Row label="Paper size" id="pref-card-paper" set={c.paper !== undefined} onReset={() => set('paper', undefined)} help="A style that does not offer this paper uses its own.">
         <PaperSelect id="pref-card-paper" value={c.paper} onChange={(v) => set('paper', v)} />
       </Row>

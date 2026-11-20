@@ -1,13 +1,13 @@
 // The local server behind `etna serve`: the web GUI plus read-only access to one or more
 // collection folders on this computer. Listens on 127.0.0.1 only.
 
-import { lstatSync, readdirSync, readFileSync, realpathSync, statSync } from 'node:fs';
+import { existsSync, lstatSync, readdirSync, readFileSync, realpathSync, statSync } from 'node:fs';
 import { createServer, type Server, type ServerResponse } from 'node:http';
 import { basename, dirname, join, resolve, sep } from 'node:path';
 
 import { buildCatalog, collectionRoot } from '../catalog/node.ts';
 import { folderOrder } from '../web/site-source.ts';
-import { isValidSlug } from '../core/index.ts';
+import { isPictureName, isValidSlug } from '../core/index.ts';
 import { isInside } from '../node/files.ts';
 import { buildWeb } from '../web/build.ts';
 import { DENSITIES_LIMIT, THEME_FILE_NAME_RE, THEME_LIMITS } from '../web/sources.ts';
@@ -44,7 +44,7 @@ const HARDENING = {
   'x-frame-options': 'DENY',
 };
 
-function send(res: ServerResponse, status: number, type: string, body: string, headers: Record<string, string> = {}): void {
+function send(res: ServerResponse, status: number, type: string, body: string | Uint8Array, headers: Record<string, string> = {}): void {
   // An answer already begun cannot be replaced by another: end the connection instead.
   if (res.headersSent) {
     res.destroy();
@@ -146,6 +146,28 @@ export function readCollectionDensities(folderRoot: string): string | null {
   return readFileSync(real, 'utf8');
 }
 
+/** The largest picture file the server hands out (32 MiB). The app reads no more than the start of one over 1024 KiB. */
+const IMAGE_FILE_LIMIT = 32 * 1024 * 1024;
+
+/**
+ * A recipe's picture file: `requested` is `<recipe folder>/image/<name>` inside the collection,
+ * `name` one Etna reads (`etna.jpg`, `etna.png`, `markdown.jpg`, `markdown.png`), in a folder
+ * that holds a recipe.md. With links followed the file must still lie inside that recipe's folder.
+ */
+export function readRecipeImage(folderRoot: string, requested: string): Uint8Array {
+  const refuse = () => new Refusal(403, 'Only the picture files of a recipe inside the collection can be read.');
+  const file = resolve(folderRoot, requested);
+  const recipeDir = dirname(dirname(file));
+  if (!file.startsWith(folderRoot + sep) || !isPictureName(basename(file)) || basename(dirname(file)) !== 'image') throw refuse();
+  if (!existsSync(join(recipeDir, 'recipe.md'))) throw refuse();
+  const realDir = realpathSync(recipeDir);
+  if (!realDir.startsWith(folderRoot + sep)) throw refuse();
+  const stat = statSync(file);
+  if (!stat.isFile() || !isInside(file, realDir)) throw refuse();
+  if (stat.size > IMAGE_FILE_LIMIT) throw new Refusal(413, `This picture file is larger than ${IMAGE_FILE_LIMIT / 1024 / 1024} MiB.`);
+  return readFileSync(file);
+}
+
 /** The largest recipe file the server hands out. Real recipes are a few kilobytes. */
 const RECIPE_FILE_LIMIT = 1024 * 1024;
 
@@ -173,7 +195,7 @@ export async function createEtnaServer(folders: LocalFolder[]): Promise<Server> 
         return send(res, 200, 'application/json', JSON.stringify(folders.map(({ id, label }) => ({ id, label }))));
       }
 
-      const m = /^\/api\/sources\/([^/]+)\/(catalog|order|file|theme|densities)$/.exec(url.pathname);
+      const m = /^\/api\/sources\/([^/]+)\/(catalog|order|file|theme|densities|image)$/.exec(url.pathname);
       if (m) {
         const folder = folders.find((f) => f.id === decodeURIComponent(m[1]));
         if (!folder) return send(res, 404, 'text/plain', 'Unknown source.');
@@ -185,6 +207,12 @@ export async function createEtnaServer(folders: LocalFolder[]): Promise<Server> 
           return text === null ? send(res, 404, 'text/plain', 'This collection has no densities.md.') : send(res, 200, 'text/markdown; charset=utf-8', text);
         }
         if (m[2] === 'theme') return send(res, 200, 'application/json', JSON.stringify(readCollectionTheme(folder.root, url.searchParams.get('name') ?? '')));
+        // Bytes the app reads as data (no page shows this address): no type to sniff, none to run.
+        // The length tells the app a large file's size, though it reads only the start of one.
+        if (m[2] === 'image') {
+          const bytes = readRecipeImage(folder.root, url.searchParams.get('path') ?? '');
+          return send(res, 200, 'application/octet-stream', bytes, { 'content-length': String(bytes.length) });
+        }
         // Only recipe files inside the folder are readable.
         const requested = url.searchParams.get('path') ?? '';
         const file = resolve(folder.root, requested);

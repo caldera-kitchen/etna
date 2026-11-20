@@ -32,6 +32,22 @@ describe('defaultSourceFiles', () => {
     expect(Object.keys(d.files).sort()).toEqual(['catalog.json', ...recipes].sort());
   });
 
+  it('carries the picture files the app reads, as bytes, beside each recipe; no other file', () => {
+    const root = join(temp, 'pictures');
+    mkdirSync(join(root, 'toast', 'image'), { recursive: true });
+    writeFileSync(join(root, 'toast', 'recipe.md'), '# Toast\n\n## Toast\n\n- 1 slice bread\n\nToast it.\n');
+    writeFileSync(join(root, 'toast', 'image', 'etna.jpg'), 'jpeg bytes');
+    writeFileSync(join(root, 'toast', 'image', 'photo.jpg'), 'other bytes');
+    writeFileSync(join(root, 'toast', 'image', '.hidden'), 'hidden');
+    const d = defaultSourceFiles(root);
+    expect(Object.keys(d.pictures)).toEqual(['toast/image/etna.jpg']);
+    expect(new TextDecoder().decode(d.pictures['toast/image/etna.jpg'])).toBe('jpeg bytes');
+    expect(Object.keys(d.files).some((f) => f.includes('image/'))).toBe(false);
+    expect(JSON.parse(d.files['catalog.json']).recipes[0].image).toEqual(['etna.jpg', 'photo.jpg']);
+    // Written by the build under default-source/, where the app reads them.
+    expect(Object.keys(defaultSourceFiles(COOKBOOK).pictures)).toEqual([]);
+  });
+
   it('takes a collection root too: recipes/ inside it, its densities.md and its themes', () => {
     const root = join(temp, 'starter');
     mkdirSync(join(root, 'recipes', 'toast'), { recursive: true });
@@ -118,6 +134,8 @@ describe('a build with a default source', () => {
       mkdirSync(join(folder, slug), { recursive: true });
       writeFileSync(join(folder, slug, 'recipe.md'), `# ${slug}\n\n## Make\n\n- 100 g flour\n\nDo the first thing.\n`);
     }
+    mkdirSync(join(folder, 'bread', 'image'));
+    writeFileSync(join(folder, 'bread', 'image', 'etna.jpg'), new Uint8Array([0xff, 0xd8, 0x00, 0x80, 0xff]));
     const quiet = async (argv: string[]) => {
       const log = console.log;
       console.log = () => {};
@@ -137,6 +155,8 @@ describe('a build with a default source', () => {
     expect(existsSync(join(out, 'default-source', 'toast'))).toBe(false);
     expect(existsSync(join(out, 'default-source', 'stray.txt'))).toBe(false);
     expect(existsSync(join(out, 'default-source', 'bread', 'recipe.md'))).toBe(true);
+    // The picture is written as its bytes, unchanged.
+    expect(new Uint8Array(readFileSync(join(out, 'default-source', 'bread', 'image', 'etna.jpg')))).toEqual(new Uint8Array([0xff, 0xd8, 0x00, 0x80, 0xff]));
     expect(JSON.parse(readFileSync(join(out, 'default-source', 'catalog.json'), 'utf8')).recipes.map((r: { slug: string }) => r.slug)).toEqual(['bread']);
     expect(readFileSync(join(out, 'CNAME'), 'utf8')).toBe('example.org\n');
     expect(existsSync(join(out, 'index.html'))).toBe(true);

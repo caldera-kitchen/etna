@@ -1,11 +1,11 @@
 // The linter on disk: one recipe file, one recipe directory, or a whole collection.
 
-import { closeSync, existsSync, openSync, readdirSync, readFileSync, readSync, realpathSync, statSync } from 'node:fs';
+import { closeSync, existsSync, openSync, readFileSync, readSync } from 'node:fs';
 import { basename, dirname, join, relative, resolve } from 'node:path';
 
 import { allSteps, isValidSlug, parseRecipe } from '../core/index.ts';
 import type { IngredientLine, Recipe } from '../core/index.ts';
-import { findRecipes, isInside, loadUnits, type RecipeFile } from '../node/files.ts';
+import { findRecipes, imageFolder, loadUnits, type RecipeFile } from '../node/files.ts';
 import { finding, hasErrors, lintRecipe, type Finding, type PictureFile } from './index.ts';
 
 export interface FileResult {
@@ -53,22 +53,10 @@ const PICTURE_HEAD = 256 * 1024;
  * Sub-folders are left out, and so is a link that leads out of the recipe directory.
  */
 function pictureFiles(dir: string): PictureFile[] {
-  const folder = join(dir, 'image');
-  let names: string[];
-  try {
-    if (!statSync(folder).isDirectory()) return [];
-    names = readdirSync(folder);
-  } catch {
-    return [];
-  }
-  const realDir = realpathSync(dir);
   const out: PictureFile[] = [];
-  for (const name of names) {
-    const path = join(folder, name);
+  for (const { name, path, size } of imageFolder(dir)) {
     try {
-      const st = statSync(path);
-      if (!st.isFile() || !isInside(path, realDir)) continue;
-      out.push({ name, bytes: readHead(path, st.size > PICTURE_READ_WHOLE ? PICTURE_HEAD : st.size), size: st.size });
+      out.push({ name, bytes: readHead(path, size > PICTURE_READ_WHOLE ? PICTURE_HEAD : size), size });
     } catch {
       // Unreadable: left out, as if it were not there.
     }

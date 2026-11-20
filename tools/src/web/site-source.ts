@@ -4,13 +4,14 @@
 // from the site itself: same origin, no GitHub request. The app's side is SiteSource (sources.ts).
 
 import { existsSync, realpathSync, readFileSync, statSync } from 'node:fs';
-import { basename, join, resolve } from 'node:path';
+import { basename, dirname, join, resolve } from 'node:path';
 
 import { fromMarkdown } from 'mdast-util-from-markdown';
 import { toString } from 'mdast-util-to-string';
 
 import { buildCatalog, collectionRoot, collectionThemes, serializeCatalog } from '../catalog/node.ts';
-import { isValidSlug } from '../core/index.ts';
+import { isPictureName, isValidSlug } from '../core/index.ts';
+import { imageFolder } from '../node/files.ts';
 import { TWIN_SUFFIX } from '../restructure/index.ts';
 import { readCollectionDensities, readCollectionTheme } from '../serve/server.ts';
 import { isRecipePath, SOURCE_LIMITS } from './sources.ts';
@@ -24,6 +25,8 @@ export interface DefaultSource {
   label: string;
   /** `catalog.json`, each recipe at its catalog path, `densities.md` if any, and `themes/<name>.json`. */
   files: Record<string, string>;
+  /** Each recipe's picture files that the app reads (`etna.jpg`…), at `<recipe folder>/image/<name>`: their bytes. */
+  pictures: Record<string, Uint8Array>;
   /** What the landing page says of it: the recipes it names first, in the folder's own order (welcome.ts). */
   welcome: SiteWelcome;
   /** The order its README states (statedOrder): the recipes it links from a list or a table, each traditional twin right after its dish; empty without a README. The recipe list follows it (listorder.ts). */
@@ -51,18 +54,23 @@ export function defaultSourceFiles(folder: string): DefaultSource {
   const catalog = buildCatalog(real);
   if (catalog.recipes.length === 0) throw new Error(`${folder} holds no recipe (no <name>/recipe.md, nor recipes/<name>/recipe.md)`);
   const files: Record<string, string> = { 'catalog.json': serializeCatalog(catalog) };
+  const pictures: Record<string, Uint8Array> = {};
   for (const entry of catalog.recipes) {
     if (!isRecipePath(entry.path)) throw new Error(`${entry.path}: the app reads a recipe at most four folders deep, by plain folder names`);
     const text = readFileSync(join(root, entry.path), 'utf8');
     if (Buffer.byteLength(text) > SOURCE_LIMITS.recipeBytes) throw new Error(`${entry.path} is larger than ${SOURCE_LIMITS.recipeBytes / 1024} KB`);
     files[entry.path] = text;
+    // The picture files the app reads, as they are; a file of another name stays a name in the catalog.
+    for (const image of imageFolder(dirname(join(root, entry.path)))) {
+      if (isPictureName(image.name)) pictures[`${dirname(entry.path)}/image/${image.name}`] = new Uint8Array(readFileSync(image.path));
+    }
   }
   const densities = readCollectionDensities(root);
   if (densities !== null) files['densities.md'] = densities;
   // Each theme as one file, its files by name: what `etna serve` answers for a theme.
   for (const name of collectionThemes(root)) files[`themes/${name}.json`] = JSON.stringify(readCollectionTheme(root, name));
   const readme = readReadme(root);
-  return { id, label: id, files, welcome: siteWelcome(catalog.recipes, readme), order: statedOrder(readme, catalog.recipes) };
+  return { id, label: id, files, pictures, welcome: siteWelcome(catalog.recipes, readme), order: statedOrder(readme, catalog.recipes) };
 }
 
 /** A collection's `README.md`, at its root, or null when it has none. */

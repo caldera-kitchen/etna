@@ -17,6 +17,12 @@ export interface CatalogEntry {
   text: string;
   /** Path of the recipe file relative to the collection root, e.g. `recipes/apple-pie/recipe.md`. */
   path: string;
+  /**
+   * Names of the files directly in the recipe's `image/` folder (SPEC §4.3), such as
+   * `["etna.jpg", "markdown.jpg"]`, sorted; hidden files left out. Left out when there are none
+   * (the key is additive; `version` stays 1). The app reads the picture by these names.
+   */
+  image?: string[];
 }
 
 export interface Catalog {

@@ -5,13 +5,13 @@ import { parse as parseYaml } from 'yaml';
 // A namespace import, so the font data (added to the bundle separately) may be absent.
 import * as etnaData from 'virtual:etna-data';
 
-import { cardType, checkTheme, DEFAULT_THEME, pageSetup, parseTheme, renderCard, renderListCard, themePapers, type CardOptions, type Theme } from '../card/index.ts';
+import { cardType, checkTheme, DEFAULT_THEME, hasPicturePlace, pageSetup, parseTheme, renderCard, renderListCard, themePapers, type CardOptions, type Theme } from '../card/index.ts';
 import { createUnitRegistry, cutName, isMenuNameWarning, isValidSlug, MENU_NAME_LIMIT, parseRecipe, type Recipe } from '../core/index.ts';
 import type { ChartMargin, ChartPaper, ChartShape } from '../dag/sheet.ts';
 import { appColors, cardTypeValues, chartCanUse, chartHasCardFonts, checkDagTheme, defaultDagTheme, renderDag, themeFonts, themePalette, type AppPalette, type CardType, type DagTheme } from '../dag/index.ts';
 import { mergeTables, parseDensities, type DensityTable } from '../density/index.ts';
 import { formatRecipe, type FormatResult } from '../fmt/index.ts';
-import { lintRecipe, type Finding } from '../lint/index.ts';
+import { lintRecipe, type Finding, type PictureFile } from '../lint/index.ts';
 import { consolidate, type ListSource, type ShoppingList } from '../list/index.ts';
 import { readAbout, type AboutData } from './about.ts';
 import type { RepoSource } from './sources.ts';
@@ -37,9 +37,13 @@ export interface Analysis {
   findings: Outcome<Finding[]>;
 }
 
-export function analyze(source: string): Analysis {
+/**
+ * Parse and lint a recipe's text. `pictures` are the files of its `image/` folder (sources.ts
+ * readImageFolder); without them the checks of those files are skipped.
+ */
+export function analyze(source: string, pictures?: PictureFile[]): Analysis {
   const recipe = attempt(() => parseRecipe(source, { units }));
-  const findings: Outcome<Finding[]> = recipe.ok ? attempt(() => lintRecipe(recipe.value)) : { ok: false, error: recipe.error };
+  const findings: Outcome<Finding[]> = recipe.ok ? attempt(() => lintRecipe(recipe.value, { pictures })) : { ok: false, error: recipe.error };
   return { source, recipe, findings };
 }
 
@@ -326,6 +330,13 @@ export interface PrintChoice {
   parts?: 'sections' | 'paired' | null;
   /** True prints the recipe's notes on the card; absent or false leaves them off. */
   notes?: boolean;
+  /** The recipe's picture (a `data:` address), shown where the theme has a place for one; absent or null: none. */
+  picture?: { src: string } | null;
+}
+
+/** True when the card can show the recipe's picture: there is one, and the theme has a place for it. */
+export function offersPicture(entry: ThemeEntry, picture: { src: string } | null | undefined): boolean {
+  return !!picture && !!entry.theme && hasPicturePlace(entry.theme);
 }
 
 /**
@@ -369,7 +380,7 @@ export function card(
   const parts = print.parts === 'sections' || print.parts === 'paired' ? print.parts : undefined;
   // `notes` is CardOptions.notes (true prints the notes). Typed loosely until that option lands in
   // card/render.ts; renderCard ignores a key it does not know.
-  const options: CardOptions & { notes?: boolean } = { webfonts: entry.webfonts, paper, size, fit: size === undefined ? 'auto' : 'off', parts, notes: print.notes === true };
+  const options: CardOptions & { notes?: boolean } = { webfonts: entry.webfonts, paper, size, fit: size === undefined ? 'auto' : 'off', parts, notes: print.notes === true, picture: print.picture ?? undefined };
   // Only a list theme totals amounts; the table is looked up for it alone.
   if (entry.theme!.layout === 'list') options.shopping = { densities: densities === undefined ? referenceDensities() : densities, units };
   return attempt(() => renderCard(recipe, entry.theme!, options));

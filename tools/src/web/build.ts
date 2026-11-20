@@ -28,6 +28,8 @@ export interface WebBundle {
    * chart PDF's code and fonts, About's credits).
    */
   files: Record<string, string>;
+  /** Files written as bytes beside them: the default source's pictures, under `default-source/`. */
+  pictures: Record<string, Uint8Array>;
   /** The GUI page's Content-Security-Policy, also written into index.html as a <meta>. */
   csp: string;
   /**
@@ -296,6 +298,7 @@ export async function buildWeb(options: WebBuildOptions = {}): Promise<WebBundle
       // The default source's recipes, read by the app from the site itself (sources.ts SiteSource).
       ...Object.fromEntries(Object.entries(options.defaultSource?.files ?? {}).map(([path, text]) => [`${SITE_SOURCE_DIR}/${path}`, text])),
     },
+    pictures: Object.fromEntries(Object.entries(options.defaultSource?.pictures ?? {}).map(([path, bytes]) => [`${SITE_SOURCE_DIR}/${path}`, bytes])),
   };
 }
 

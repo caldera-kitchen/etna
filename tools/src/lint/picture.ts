@@ -8,24 +8,17 @@ import { fromMarkdown } from 'mdast-util-from-markdown';
 import { frontmatterFromMarkdown } from 'mdast-util-frontmatter';
 import { frontmatter } from 'micromark-extension-frontmatter';
 
-import { imageOnly, isPictureAddress, readPicture } from '../core/index.ts';
-import type { Pos, Recipe } from '../core/index.ts';
+import { imageOnly, isPictureAddress, isPictureName, readPicture } from '../core/index.ts';
+import type { PictureBytes, Pos, Recipe } from '../core/index.ts';
 import type { RuleId } from './rules.ts';
 
-/** One file directly in a recipe's `image/` folder. */
-export interface PictureFile {
-  /** The file's name in the folder, as written (`etna.jpg`). */
-  name: string;
-  /** The file's bytes, or only its start: enough to hold its header and Exif data. */
-  bytes: Uint8Array;
-  /** The whole file's size in bytes, when `bytes` holds only its start. Defaults to `bytes.length`. */
-  size?: number;
-}
+/**
+ * One file directly in a recipe's `image/` folder: its name, and its bytes or only their start
+ * (enough to hold its header and Exif data). A file Etna does not read may come with no bytes.
+ */
+export type PictureFile = PictureBytes;
 
 type Add = (rule: RuleId, where: Pos | { line: number; column: number }, at: string | null, message: string) => void;
-
-/** The names Etna reads in `image/`. */
-const NAMES = ['etna.jpg', 'etna.png', 'markdown.jpg', 'markdown.png'];
 
 /** The kind each ending promises. */
 const KIND_OF_ENDING: Record<string, 'jpeg' | 'png'> = { jpg: 'jpeg', png: 'png' };
@@ -133,7 +126,7 @@ function lintFiles(files: PictureFile[], add: Add): void {
 
   for (const file of sorted) {
     const path = `image/${file.name}`;
-    if (!NAMES.includes(file.name)) {
+    if (!isPictureName(file.name)) {
       add('picture-file', TOP, null, `The file ${path} is not one Etna uses: name the picture image/etna.jpg (or .png) for Etna, and image/markdown.jpg (or .png) for the picture line.`);
       continue;
     }

@@ -4,7 +4,7 @@ import { existsSync, mkdirSync, readdirSync, statSync } from 'node:fs';
 import { basename, dirname, join, relative, resolve, sep } from 'node:path';
 
 import { isValidSlug } from '../core/index.ts';
-import { findRecipes, loadUnits, readRecipe, writeFileSafely } from '../node/files.ts';
+import { findRecipes, imageFolder, loadUnits, readRecipe, writeFileSafely } from '../node/files.ts';
 import { catalogEntry, compareSlugs } from './entry.ts';
 import type { Catalog } from './types.ts';
 
@@ -31,6 +31,9 @@ export function buildCatalog(path: string): Catalog {
     if (!found.file) continue;
     const entry = catalogEntry(readRecipe(found.file, units), found.slug);
     entry.path = relative(root, found.file).split(sep).join('/');
+    // The picture belongs to a recipe folder: a loose Markdown file has none.
+    const image = basename(found.file) === 'recipe.md' ? imageFolder(dirname(found.file)).map((f) => f.name).filter((n) => !n.startsWith('.')) : [];
+    if (image.length > 0) entry.image = image;
     recipes.push(entry);
   }
   // Code-point order, so the file is the same whatever the machine's locale.

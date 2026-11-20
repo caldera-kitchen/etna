@@ -78,12 +78,12 @@ export async function run(argv: string[]): Promise<number> {
   // The build owns `default-source/` in the output: a recipe removed from the folder since the
   // last build must not stay behind. Nothing else in the output is removed.
   rmSync(join(dir, SITE_SOURCE_DIR), { recursive: true, force: true });
-  for (const [name, content] of Object.entries(bundle.files)) {
+  for (const [name, content] of [...Object.entries(bundle.files), ...Object.entries(bundle.pictures)]) {
     mkdirSync(dirname(join(dir, name)), { recursive: true });
     writeFileSync(join(dir, name), content);
   }
   const size = Buffer.byteLength(bundle.files['app.js']);
-  const carried = defaultSource ? `; default source: ${defaultSource.id}, ${Object.keys(defaultSource.files).filter((f) => f.endsWith('/recipe.md')).length} recipes` : '';
+  const carried = defaultSource ? `; default source: ${defaultSource.id}, ${Object.keys(defaultSource.files).filter((f) => f.endsWith('/recipe.md')).length} recipes${Object.keys(defaultSource.pictures).length > 0 ? `, ${Object.keys(defaultSource.pictures).length} picture files` : ''}` : '';
   console.log(`Wrote ${Object.keys(bundle.files).length} files to ${dir} (app.js ${(size / 1024).toFixed(0)} KB; fonts: ${fonts}${carried})`);
   return 0;
 }

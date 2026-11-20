@@ -6,6 +6,7 @@ import { Fragment, render, type ComponentChildren } from 'preact';
 import { useEffect, useMemo, useRef, useState } from 'preact/hooks';
 
 import { createSearch, matchRanges, type CatalogEntry, type SearchHit } from '../catalog/index.ts';
+import { etnaPicture, type PictureBytes } from '../core/index.ts';
 import type { Finding } from '../lint/index.ts';
 import {
   analyze,
@@ -17,6 +18,7 @@ import {
   format,
   isAvailable,
   offersPartsChoice,
+  offersPicture,
   isListTheme,
   listCard,
   loadSourceThemeSets,
@@ -92,7 +94,7 @@ import { addSource, linkRepos, moveSource, removeSiteSource, removeSource, resto
 import { ETNA_IS, requestHosts } from './about.ts';
 import { listOrder } from './listorder.ts';
 import { welcomeForm, type SiteWelcome } from './welcome.ts';
-import { discoverLocalSources, GitHubSource, SiteSource, type LocalSource, type RepoSource } from './sources.ts';
+import { discoverLocalSources, GitHubSource, readImageFolder, SiteSource, type LocalSource, type RepoSource } from './sources.ts';
 
 // ---------------------------------------------------------------------- state
 
@@ -128,6 +130,41 @@ function readRecipeText(source: RepoSource, path: string): Promise<string> {
     recipeTexts.set(key, text);
   }
   return text;
+}
+
+// Each recipe's picture files (its image/ folder), fetched once per session when its page opens.
+// A folder that could not be seen is forgotten, so opening the recipe again tries again.
+const imageFolders = new Map<string, Promise<PictureBytes[] | null>>();
+
+function readPictures(source: RepoSource, path: string): Promise<PictureBytes[] | null> {
+  const key = `${source.id}\u0000${path}`;
+  let folder = imageFolders.get(key);
+  if (!folder) {
+    folder = readImageFolder(source, path).catch(() => null);
+    folder.then((files) => files === null && imageFolders.delete(key));
+    imageFolders.set(key, folder);
+  }
+  return folder;
+}
+
+/** A recipe's page: its text checked with its picture files, and the picture its card shows (null: none). */
+interface RecipePage {
+  analysis: Analysis;
+  picture: { src: string } | null;
+}
+
+const recipePages = new Map<string, { text: string; files: PictureBytes[] | null; page: RecipePage }>();
+
+async function readRecipePage(source: RepoSource, path: string): Promise<RecipePage> {
+  const key = `${source.id}\u0000${path}`;
+  const [text, files] = await Promise.all([readRecipeText(source, path), readPictures(source, path)]);
+  const known = recipePages.get(key);
+  if (known && known.text === text && known.files === files) return known.page;
+  // A picture Etna cannot show (too large, not what its ending says) is left off; the Check tab says why.
+  const found = files === null ? null : etnaPicture(files);
+  const page = { analysis: analyze(text, files ?? undefined), picture: found !== null && 'src' in found ? found : null };
+  recipePages.set(key, { text, files, page });
+  return page;
 }
 
 async function readAnalysis(source: RepoSource, path: string): Promise<Analysis> {
@@ -1433,7 +1470,7 @@ function RecipeView(props: {
   /** The screen-only style for the card's page (corners, colors), or null. */
   pageCss: string | null;
 }) {
-  const [analysis, setAnalysis] = useState<Analysis | null>(null);
+  const [page, setPage] = useState<RecipePage | null>(null);
   const [error, setError] = useState<string | null>(null);
   // The line a Check finding sent the reader to, marked on the Source tab until they leave it.
   const [lineTarget, setLineTarget] = useState<number | null>(null);
@@ -1443,8 +1480,8 @@ function RecipeView(props: {
 
   useEffect(() => {
     let live = true;
-    readAnalysis(props.source, props.path).then(
-      (a) => live && setAnalysis(a),
+    readRecipePage(props.source, props.path).then(
+      (p) => live && setPage(p),
       (e) => live && setError(String(e?.message ?? e)),
     );
     return () => {
@@ -1452,7 +1489,8 @@ function RecipeView(props: {
     };
   }, [props.source, props.path]);
   if (error) return <Problem title="This recipe could not be loaded" detail={error} />;
-  if (!analysis) return <div class="empty">Loading…</div>;
+  if (!page) return <div class="empty">Loading…</div>;
+  const analysis = page.analysis;
 
   const findings = analysis.findings.ok ? analysis.findings.value : [];
   const badge = checkBadge(findings);
@@ -1528,6 +1566,7 @@ function RecipeView(props: {
         {props.tab === 'card' && (
           <CardPane
             analysis={analysis}
+            picture={page.picture}
             marks={props.marks}
             onClearMarks={props.onClearMarks}
             themes={props.themes}
@@ -1771,6 +1810,8 @@ function highlightDocument(doc: Document, terms: string[]): number {
 
 function CardPane(props: {
   analysis: Analysis;
+  /** The recipe's picture, null when it has none the app can show. */
+  picture: { src: string } | null;
   marks: string[];
   onClearMarks: () => void;
   themes: ThemeGroup[];
@@ -1793,11 +1834,12 @@ function CardPane(props: {
       themes={props.themes}
       entry={entry}
       onTheme={props.onTheme}
-      render={(e, print) => card(recipe, e, print)}
+      render={(e, print) => card(recipe, e, { ...print, picture: props.prefs.picture === false ? null : props.picture })}
       prefs={props.prefs}
       onPref={(key, value) => props.onPref(key, value)}
       offerParts={offersPartsChoice(entry, recipe)}
       offerNotes={hasRecipeNotes(recipe)}
+      offerPicture={offersPicture(entry, props.picture)}
       pageCss={props.pageCss}
       frameTitle="Recipe card"
       marks={props.marks}
@@ -1817,12 +1859,14 @@ function PagedCard(props: {
   entry: ThemeEntry;
   onTheme: (id: string) => void;
   render: (entry: ThemeEntry, print: PrintChoice) => Outcome<string>;
-  prefs: { paper?: string; size?: string; parts?: 'paired' | 'sections'; notes?: boolean };
-  onPref: (key: 'paper' | 'size' | 'parts' | 'notes', value: unknown) => void;
+  prefs: { paper?: string; size?: string; parts?: 'paired' | 'sections'; notes?: boolean; picture?: boolean };
+  onPref: (key: 'paper' | 'size' | 'parts' | 'notes' | 'picture', value: unknown) => void;
   /** True when the card can be shown both ways (parts with their steps, or in one list). */
   offerParts?: boolean;
   /** True when the recipe has notes the card can print. */
   offerNotes?: boolean;
+  /** True when the recipe has a picture and the style a place for it. */
+  offerPicture?: boolean;
   /** A screen-only style for the page inside the frame (corners and colors), or null. */
   pageCss: string | null;
   frameTitle: string;
@@ -1917,7 +1961,7 @@ function PagedCard(props: {
   const html = props.render(entry, { paper: choices.paper || null, size: sizeChoice, parts, notes });
   const failed = all.filter((e) => !isAvailable(e));
   const hasAbout = failed.length > 0 || entry.warnings.length > 0;
-  const looks = all.length > 1 || hasAbout || !!props.offerParts || !!props.offerNotes;
+  const looks = all.length > 1 || hasAbout || !!props.offerParts || !!props.offerNotes || !!props.offerPicture;
   const prints = choices.papers.length > 1 || choices.sizes.length > 0;
   return (
     <div class="card-pane">
@@ -1969,6 +2013,18 @@ function PagedCard(props: {
               }}
             />
             Notes
+          </label>
+        )}
+        {props.offerPicture && (
+          <label class="check" title="Show the recipe's picture on the card, and print it">
+            <input
+              type="checkbox"
+              checked={props.prefs.picture !== false}
+              onChange={(e) => {
+                props.onPref('picture', (e.target as HTMLInputElement).checked);
+              }}
+            />
+            Picture
           </label>
         )}
         </div>

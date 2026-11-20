@@ -100,6 +100,35 @@ export function isInside(file: string, realRoot: string): boolean {
   }
 }
 
+/**
+ * The files directly in a recipe's `image/` folder (SPEC §4.3), sorted by name: each one's name,
+ * path and size. Empty when there is no such folder. Sub-folders are left out, and so is a link
+ * that leads out of the recipe directory `dir`, or a file that cannot be read.
+ */
+export function imageFolder(dir: string): { name: string; path: string; size: number }[] {
+  const folder = join(dir, 'image');
+  let names: string[];
+  let realDir: string;
+  try {
+    if (!statSync(folder).isDirectory()) return [];
+    names = readdirSync(folder);
+    realDir = realpathSync(dir);
+  } catch {
+    return [];
+  }
+  const out: { name: string; path: string; size: number }[] = [];
+  for (const name of names.sort((a, b) => (a < b ? -1 : a > b ? 1 : 0))) {
+    const path = join(folder, name);
+    try {
+      const st = statSync(path);
+      if (st.isFile() && isInside(path, realDir)) out.push({ name, path, size: st.size });
+    } catch {
+      // Unreadable: left out, as if it were not there.
+    }
+  }
+  return out;
+}
+
 function defaultNote(message: string): void {
   console.error(`etna: ${message}`);
 }

@@ -43,6 +43,8 @@ export interface CardSettings {
   size?: string;
   parts?: PartsChoice;
   notes?: boolean;
+  /** False leaves the recipe's picture off the card; absent or true shows it where the style has a place for one. */
+  picture?: boolean;
   /** A card (and the shopping list) on screen in the app's colors (the default), or in the style's own. Print is always the style's own. */
   palette?: 'app' | 'own';
 }
@@ -185,7 +187,7 @@ function parseCards(raw: unknown, ignored: string[]): CardSettings | undefined {
             ? isSize(value)
             : key === 'parts'
               ? value === 'paired' || value === 'sections'
-              : key === 'notes'
+              : key === 'notes' || key === 'picture'
                 ? typeof value === 'boolean'
                 : key === 'palette'
                   ? value === 'app' || value === 'own'
