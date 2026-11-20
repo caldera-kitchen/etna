@@ -507,6 +507,11 @@ the sentence word for word.
   to full pressure for 15 minutes."; Easter Bread's "3, 4, or 6 pieces depending on
   the braid style") are not a Choose: leave them in the prose and flag
   (*Alternatives left in the prose*).
+  Two methods labeled inside one direction ("By hand: … In a mixer: …") are not a Choose
+  by themselves either: keep the direction as one step, flag it, and offer to split it. On
+  the person's yes, cut it between the methods' sentences into two branches in `recipe.md`,
+  keeping the labels in the prose. The traditional file keeps the direction as the source
+  has it; the checker compares sentences, not numbering, and passes.
 - **A note moved to its step.** A note of the original that is about
   one step only (a note "Part A keeps one day." that belongs to *Make Part A*) may leave
   `## Notes` and become a callout under that step, after its instruction:

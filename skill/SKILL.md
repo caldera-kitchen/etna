@@ -98,7 +98,9 @@ etna restructure check <traditional.md> <recipe.md>
 ```
 
 It must end `Result: PASS — nothing was lost or altered.` (exit 0). Fix the conversion, never
-the original; give each "Accepted changes" item a flag. Run Step 2 again on the new file.
+the original; give each "Accepted changes" item a flag. A split the person agrees to, such as
+two methods in one direction made into a `Choose`, is made in `recipe.md` only:
+`traditional.md` stays as the source has it. Run Step 2 again on the new file.
 Flags go to the person, never into the recipe (playbook section 9).
 
 ## Step 4: marks, only with the person
