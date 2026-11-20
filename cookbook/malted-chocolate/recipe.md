@@ -6,6 +6,8 @@ license: CC BY-SA 4.0
 
 # Malted Chocolate
 
+![Malted chocolate ice cream in a waffle cone](image/markdown.jpg)
+
 ## Blend the base
 
 - 240 g heavy cream

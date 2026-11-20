@@ -8,6 +8,8 @@ extra:
 
 # Nana Palumbo's Meatloaf
 
+![meatloaf on a Currier & Ives plate with extra sauce in glass measuring cup](image/markdown.jpg)
+
 ## Meatloaf
 
 ### Mix the meatloaf

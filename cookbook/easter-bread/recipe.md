@@ -8,6 +8,8 @@ extra:
 
 # Easter Bread
 
+![A cut loaf of Easter bread, iced and covered in sprinkles](image/markdown.jpg)
+
 ## Bread
 
 ### Yeast mixture

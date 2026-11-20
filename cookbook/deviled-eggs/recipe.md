@@ -6,6 +6,8 @@ license: CC BY-SA 4.0
 
 # Deviled Eggs
 
+![Deviled eggs on a yellow egg plate](image/markdown.jpg)
+
 ## Peel and halve
 
 - 1 recipe [Boiled Eggs](../boiled-eggs/) — hard boiled, refrigerated

@@ -44,8 +44,11 @@ describe('defaultSourceFiles', () => {
     expect(new TextDecoder().decode(d.pictures['toast/image/etna.jpg'])).toBe('jpeg bytes');
     expect(Object.keys(d.files).some((f) => f.includes('image/'))).toBe(false);
     expect(JSON.parse(d.files['catalog.json']).recipes[0].image).toEqual(['etna.jpg', 'photo.jpg']);
-    // Written by the build under default-source/, where the app reads them.
-    expect(Object.keys(defaultSourceFiles(COOKBOOK).pictures)).toEqual([]);
+    // The cookbook's seven pictures, both copies each; the build writes them under
+    // default-source/, where the app reads them.
+    const cookbook = Object.keys(defaultSourceFiles(COOKBOOK).pictures);
+    expect(cookbook).toHaveLength(14);
+    expect(cookbook.every((f) => /^[a-z-]+\/image\/(etna|markdown)\.jpg$/.test(f))).toBe(true);
   });
 
   it('takes a collection root too: recipes/ inside it, its densities.md and its themes', () => {

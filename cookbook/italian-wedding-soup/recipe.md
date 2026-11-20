@@ -7,6 +7,8 @@ license: CC BY-SA 4.0
 
 # Italian Wedding Soup
 
+![A ladle of Italian wedding soup lifted from the pot](image/markdown.jpg)
+
 ## Chicken Stock
 
 ### Break down the chicken

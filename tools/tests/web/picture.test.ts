@@ -28,6 +28,8 @@ const LINTER = join(ETNA_ROOT, 'tests', 'linter');
 const CLEAN = join(LINTER, 'clean-picture', 'input');
 const PNG = new Uint8Array(readFileSync(join(CLEAN, 'test-soup', 'image', 'etna.png')));
 const JPEG = new Uint8Array(readFileSync(join(CLEAN, 'test-soup', 'image', 'markdown.jpg')));
+/** The cookbook recipes that have a picture, both copies each; their traditional twins have none. */
+const COOKBOOK_PICTURES = ['deviled-eggs', 'easter-bread', 'italian-wedding-soup', 'malted-chocolate', 'nana-palumbos-meatloaf', 'next-day-soft-cinnamon-rolls', 'pistachio-in-the-style-of-van-leeuwen'];
 const SOUP = readFileSync(join(CLEAN, 'test-soup', 'recipe.md'), 'utf8');
 
 const RAW = 'https://raw.githubusercontent.com/someone/recipes/HEAD/';
@@ -76,7 +78,10 @@ describe('the catalog lists a recipe\'s image files', () => {
 
   it('not at all for a recipe without them', () => {
     const catalog = buildCatalog(join(ETNA_ROOT, 'cookbook'));
-    expect(catalog.recipes.every((r) => !('image' in r))).toBe(true);
+    const withPicture = catalog.recipes.filter((r) => 'image' in r);
+    expect(withPicture.map((r) => r.slug).sort()).toEqual(COOKBOOK_PICTURES);
+    expect(withPicture.every((r) => r.image?.join() === 'etna.jpg,markdown.jpg')).toBe(true);
+    expect(catalog.recipes.find((r) => r.slug === 'easter-bread-traditional-form')).not.toHaveProperty('image');
   });
 
   it('as a source hands them over: plain names only, not hidden, no paths', () => {

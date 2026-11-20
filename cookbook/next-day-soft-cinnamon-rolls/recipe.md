@@ -8,6 +8,8 @@ version: v1.0.2
 
 # Next-Day Soft Cinnamon Rolls
 
+![Cinnamon rolls with white icing, side by side](image/markdown.jpg)
+
 ## Dough
 
 ### Yudane

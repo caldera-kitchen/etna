@@ -6,6 +6,8 @@ license: CC BY-SA 4.0
 
 # Pistachio in the style of Van Leeuwen
 
+![A scoop of pistachio ice cream on a white plate](image/markdown.jpg)
+
 ## Whirl 30 seconds
 
 - 92.5 g shelled pistachios
