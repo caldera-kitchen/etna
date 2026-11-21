@@ -59,6 +59,8 @@
 }
 * { box-sizing: border-box; }
 html, body { margin: 0; height: 100%; }
+/* Text at the sizes set: iOS Safari otherwise enlarges some of it, turned sideways most of all. */
+html { -webkit-text-size-adjust: 100%; text-size-adjust: 100%; }
 body { background: var(--ground); }
 button, input, select { font: inherit; color: inherit; }
 button { cursor: pointer; }

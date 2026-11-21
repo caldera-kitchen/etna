@@ -2362,11 +2362,16 @@ function ChartPane(props: {
               disabled={!svg?.ok}
               onClick={() => {
                 if (!svg?.ok) return;
-                // The same download the link gave, from a button, so the two controls share one look.
+                // Saved from a blob and a link in the page, as the PDF and the settings file are:
+                // iOS Safari did nothing with a data: link that was not in the page.
+                const url = URL.createObjectURL(new Blob([svg.value], { type: 'image/svg+xml' }));
                 const a = document.createElement('a');
-                a.href = svgDataUrl(svg.value);
+                a.href = url;
                 a.download = `${slug}-chart.svg`;
+                document.body.append(a);
                 a.click();
+                a.remove();
+                setTimeout(() => URL.revokeObjectURL(url), 60_000);
               }}
             >
               Save SVG

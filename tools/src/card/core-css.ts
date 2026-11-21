@@ -34,6 +34,10 @@ export const CORE_CSS = `/* ---- etna card core (renderer-owned; a theme's style
    all of it follows the size the paging script chooses. */
 :root { font-size: var(--card-font-size); }
 
+/* A phone shows the text at the sizes set: iOS Safari otherwise enlarges a long line on a page
+   wider than the screen, such as a source line that does not wrap. */
+:root { -webkit-text-size-adjust: 100%; text-size-adjust: 100%; }
+
 .card {
   font-family: var(--card-font-body);
   font-size: var(--card-font-size);

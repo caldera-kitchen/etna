@@ -577,7 +577,8 @@ override any of it with a rule of the same selector. It holds mechanics, not loo
   var(--card-font-size)` and the text in `--card-ink`; each `.sheet` is `--card-paper`
   with its text in `--card-ink`, and the desk behind the pages on screen `--card-desk`. Its
   one line, the border of `list-box`, is `currentColor`, the ink. Those four roles are all
-  the color the core uses. Set `line-height` and anything else yourself.
+  the color the core uses. Set `line-height` and anything else yourself. A phone shows the
+  text at the sizes set and does not enlarge any of it by itself (`text-size-adjust: 100%`).
 - **The ingredient table.** Collapsed borders; cells aligned left on the baseline at normal
   weight; the quantity right-aligned and the quantity and unit unbroken, so the three
   columns line up. Widths and padding are the theme's.
